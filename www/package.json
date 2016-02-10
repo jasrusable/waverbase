@@ -10,6 +10,6 @@
   "license": "",
   "repository": "git@github.com:Waverbase/waverbase.git",
   "devDependencies": {
-    "gulp": "^3.9.1",
+    "gulp": "^3.9.1"
   }
 }
