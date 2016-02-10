@@ -1,0 +1,7 @@
+dependencies:
+  override:
+    - cd www && npm install --dev
+
+test:
+  override:
+    - cd www && gulp
