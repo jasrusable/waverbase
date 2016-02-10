@@ -7,5 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Pierre Hugo, Yaseen Hamdulay",
-  "license": ""
+  "license": "",
+  "repository": "git@github.com:Waverbase/waverbase.git",
+  "devDependencies": {
+    "gulp": "^3.9.1"
+  }
 }
