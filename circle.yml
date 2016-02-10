@@ -1,6 +1,6 @@
 dependencies:
   override:
-    - cd www && npm install --dev
+    - cd www && npm install --only=dev
 
 test:
   override:
