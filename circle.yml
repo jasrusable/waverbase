@@ -1,6 +1,6 @@
 dependencies:
   override:
-    - npm install -g gulp-cli
+    - npm install -g gulp-cli netlify-cli
     - cd www && npm install --only=dev
 
 test:
