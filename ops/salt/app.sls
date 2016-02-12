@@ -1,2 +1,2 @@
 include:
-    - .node.node
+    - node
