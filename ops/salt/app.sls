@@ -9,6 +9,7 @@ app:
     - group: waverbase
     - mode: 400
     - require:
+      - user: waverbase
       - file: waverbase
   git.latest:
     - name: git@github.com:Waverbase/turnip.git

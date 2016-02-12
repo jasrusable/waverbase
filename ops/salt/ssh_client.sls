@@ -1,0 +1,5 @@
+ssh_client:
+  ssh_auth.present:
+    - user: waverbase
+    - enc: ssh-rsa
+    - name: AAAAB3NzaC1yc2EAAAADAQABAAABAQCiVG1+R18EiHh9aN0BxlCvgsPHMV2Nd0Pv9Ua7GQQ95Iy03E6NWTPcwLJvJ7+kPuJTWM/eCQRCOD8njF4TXQ9VBynQvKuCuvboUml228OxsAZt0i94jEQxd986dbkxMujH9tQd35c9XJnUHBtG3KyHvqzz3Zs7P5b2GQABdrgkyM8zueYELJqYKc5rvqMsIrgLTamnj8KfzB/s26Deovv22mnq9JUXTEH6+89ewi2sTF5G1lBGfR5mpNjta41DqS7P4LEOMh/3cIFwJVpX1KUT9HPwKNKyHMBKkrn55aU2KrlUYyoAb4OeohEfi3RraN7Iofc4jF1yEnezgg4mGKl7
