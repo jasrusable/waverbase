@@ -11,3 +11,6 @@ vim:
 
 git:
   pkg.installed
+
+htop:
+  pkg.installed
