@@ -9,7 +9,17 @@ waverbase:
     - mode: 750
 
 zsh:
-  pkg.installed
+  pkg.installed:
+    - name: zsh
+  file.managed:
+    - name: /home/waverbase/.zshrc
+    - source: salt://zshrc
+    - user: waverbase
+    - group: waverbase
+    - mode: 640
+    - require:
+      - user: waverbase
+      - file: waverbase
 
 vim:
   pkg.installed
