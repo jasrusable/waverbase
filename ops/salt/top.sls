@@ -1,5 +1,5 @@
 base:
   '*':
     - all
-  'turnip':
+  'turnip.waverbase.com':
     - turnip
