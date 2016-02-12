@@ -1,5 +1,5 @@
 include:
-    - node
+  - node
 
 app:
   file.managed:
