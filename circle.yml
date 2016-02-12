@@ -1,0 +1,18 @@
+dependencies:
+  override:
+    - npm install -g gulp-cli netlify-cli
+    - cd www && npm install --only=dev
+
+test:
+  override:
+    - cd www && gulp
+
+deployment:
+  develop:
+    branch: develop
+    commands:
+      - cd www && netlify deploy -e develop -t $NETLIFY_ACCESS_TOKEN
+  prod:
+    branch: master
+    commands:
+      - cd www && netlify deploy -e prod -t $NETLIFY_ACCESS_TOKEN
