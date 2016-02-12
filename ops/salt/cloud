@@ -3,3 +3,6 @@ profiles:
         provider: my-ec2
         size: t2.micro
         image: ami-f95ef58a
+        network_interfaces:
+          - DeviceIndex: 0
+          allocate_new_eips: True
