@@ -3,13 +3,8 @@ cmake:
 
 pygit2:
   cmd.run:
+    - creates: /usr/local/lib/libgit2.so
     - name: |
-      set -e
-      if [ -f /usr/local/lib/libgit2.so ];
-      then
-        echo "Libgit2 installed, skipping."
-        exit 0
-      fi
       cd /tmp
       wget https://github.com/libgit2/libgit2/archive/v0.23.4.tar.gz
       tar xzf v0.23.4.tar.gz
