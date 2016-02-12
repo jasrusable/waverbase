@@ -18,6 +18,8 @@ turnip:
       - pkg: git
   pkg.installed:
     - name: python-pip
+  pkg.installed:
+    - name: python-virtualenv
   virtualenv.managed:
     - name: /waverbase/turnip_venv
     - system_site_packages: False
