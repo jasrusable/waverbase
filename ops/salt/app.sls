@@ -20,8 +20,7 @@ app:
       - file: /waverbase/parse_server_deploy_key
       - pkg: git
       - node: app
-  npm_installed:
-    npm.bootstrap:
-      - name: /waverbase/parse_server
-      - require:
-        - git: app
+  npm.bootstrap:
+    - name: /waverbase/parse_server
+    - require:
+      - git: app
