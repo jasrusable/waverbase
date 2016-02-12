@@ -11,6 +11,12 @@ ssh_config:
       - user: waverbase
 
 ssh:
+  ssh_auth.present:
+    - user: waverbase
+    - enc: ssh-rsa
+    - names:
+      - {{pillar['avoid3d_ssh_public_key']}}
+      - {{pillar['yaseen_ssh_public_key']}}
   file.managed:
     - contents_pillar: saltmaster_ssh_key
     - name: /waverbase/saltmaster_ssh_key
