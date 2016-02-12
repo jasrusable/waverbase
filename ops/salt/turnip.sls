@@ -20,6 +20,7 @@ turnip:
     - pkgs:
       - python-pip
       - python-virtualenv
+      - python-dev
   virtualenv.managed:
     - name: /waverbase/turnip_venv
     - system_site_packages: False
