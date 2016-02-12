@@ -5,7 +5,7 @@ pygit2:
   cmd.run:
     - creates: /usr/local/lib/libgit2.so
     - require:
-      - pkg.installed: cmake
+      - pkg: cmake
     - name: salt://install_libgit2.sh
 
 turnip:
