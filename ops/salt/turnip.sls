@@ -4,7 +4,6 @@ cmake:
 pygit2:
   cmd.run:
     - name: |
-      # TODO: Fix ldconfig issue.
       set -e
       if [ -f /usr/local/lib/libgit2.so ];
       then
