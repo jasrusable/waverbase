@@ -1,5 +1,6 @@
 turnip:
   file.managed:
+    - name: /waverbase/turnip_deploy_key
     - contents_pillar: turnip_deploy_key
     - user: waverbase
     - group: waverbase
@@ -8,6 +9,6 @@ turnip:
     - name: git@github.com:Waverbase/turnip.git
     - rev: master
     - identity:
-      - /waverbase/turnip-deploy-key
+      - /waverbase/turnip_deploy_key
     - require:
       - file: turnip
