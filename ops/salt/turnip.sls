@@ -16,3 +16,11 @@ turnip:
     - require:
       - file: turnip
       - pkg: git
+  pkg.installed:
+    - name: python-pip
+  virtualenv.managed:
+    - name: /waverbase/turnip_venv
+    - system_site_packages: False
+    - requirements: salt://turnip_requirements.txt
+    - require:
+      - pkg: turnip
