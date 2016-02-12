@@ -2,8 +2,6 @@ cmake:
   pkg.installed
 
 pygit2:
-  - require:
-    - pkg.installed: cmake
   cmd.run:
     - creates: /usr/local/lib/libgit2.so
     - name: |
@@ -14,6 +12,8 @@ pygit2:
       cmake .
       make
       sudo make install
+    - require:
+      - pkg.installed: cmake
 
 turnip:
   file.managed:
