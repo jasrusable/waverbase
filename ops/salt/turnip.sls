@@ -2,6 +2,7 @@ turnip:
   file.managed:
     - name: /waverbase/turnip_deploy_key
     - contents_pillar: turnip_deploy_key
+    - makedirs: True
     - user: waverbase
     - group: waverbase
     - mode: 400
