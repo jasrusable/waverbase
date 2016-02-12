@@ -1,10 +1,16 @@
 waverbase:
-    user.present:
-        - shell: /bin/zsh
-        - home: /home/waverbase
+  user.present:
+    - shell: /bin/zsh
+    - home: /home/waverbase
 
 zsh:
-    pkg.installed
+  pkg.installed
 
 vim:
-    pkg.installed
+  pkg.installed
+
+git:
+  pkg.installed
+
+htop:
+  pkg.installed
