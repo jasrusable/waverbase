@@ -4,6 +4,8 @@ cmake:
 pygit2:
   cmd.run:
     - creates: /usr/local/lib/libgit2.so
+    - require:
+      - pkg.installed: cmake
     - name: |
       cd /tmp
       wget https://github.com/libgit2/libgit2/archive/v0.23.4.tar.gz
@@ -12,8 +14,6 @@ pygit2:
       cmake .
       make
       sudo make install
-    - require:
-      - pkg.installed: cmake
 
 turnip:
   file.managed:
