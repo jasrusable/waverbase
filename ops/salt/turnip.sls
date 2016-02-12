@@ -13,3 +13,4 @@ turnip:
       - /waverbase/turnip_deploy_key
     - require:
       - file: turnip
+      - pkg: git
