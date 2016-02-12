@@ -2,9 +2,10 @@ ssh_config:
   file.managed:
     - template: jinja
     - source: salt://saltmaster_ssh_config.jinja
-    - name: /waverbase/.ssh/config
+    - name: /home/waverbase/.ssh/config
     - user: waverbase
     - group: waverbase
+    - makedirs: True
     - mode: 644
     - require:
       - user: waverbase
