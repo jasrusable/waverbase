@@ -1,3 +1,5 @@
 base:
+  '*':
+    - all
   'app*':
     - app
