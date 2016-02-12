@@ -9,6 +9,7 @@ turnip:
   git.latest:
     - name: git@github.com:Waverbase/turnip.git
     - rev: master
+    - target: /waverbase/turnip
     - identity:
       - /waverbase/turnip_deploy_key
     - require:
