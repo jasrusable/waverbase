@@ -1,4 +1,6 @@
 base:
+  '*':
+    - common
   'app*':
     - app
   'turnip':
