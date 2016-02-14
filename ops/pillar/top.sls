@@ -1,7 +1,5 @@
 base:
   '*':
-    - common
+    - all
   'app*':
     - app
-  'turnip':
-    - turnip

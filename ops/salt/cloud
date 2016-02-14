@@ -1,5 +1,0 @@
-profiles:
-    app_ec2:
-        provider: my-ec2
-        size: t2.micro
-        image: ami-f95ef58a
