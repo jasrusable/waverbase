@@ -5,6 +5,7 @@ consul|install-system-pkgs:
   pkg.installed:
     - names:
       - wget
+      - unzip
 
 consul|create-user-and-group:
   group.present:
