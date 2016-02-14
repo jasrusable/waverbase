@@ -7,3 +7,5 @@ consul:
   server_target: 'saltmaster.waverbase.com'
   ui_public_target: 'saltmaster.waverbase.com'
   version: 0.6.3
+  source_hash: 'a336895f0b2d9c4679524f0c9896e1ec'
+
