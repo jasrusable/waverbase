@@ -1,0 +1,3 @@
+[submodule "apps/parse-server/code"]
+	path = apps/parse-server/code
+	url = git@github.com:Waverbase/parse-server.git
