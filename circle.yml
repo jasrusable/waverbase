@@ -13,8 +13,13 @@ dependencies:
   override:
     - npm install -g gulp-cli netlify-cli
     - cd www && npm install --only=dev
-    - cd ops/turnip && bash build.sh
     - script/auth-gcloud.sh
+    # Build the turnip docker image.
+    - if [[ -e ~/docker/turnip.tar ]]; then docker load -i ~/docker/turnip.tar; fi
+    - cd ops/turnip && bash build.sh
+    - mkdir -p ~/docker; docker save eu.gcr.io/api-project-1075799951054/prod-turnip > ~/docker/turnip.tar
+  cache_directories:
+    - ~/docker
 
 test:
   override:
