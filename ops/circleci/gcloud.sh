@@ -7,3 +7,4 @@ gcloud auth activate-service-account $GCLOUD_EMAIL --key-file gcloud.json
 ssh-keygen -f ~/.ssh/google_compute_engine -N ""
 gcloud --quiet components update
 gcloud config set project $GCLOUD_PROJECTID
+gcloud docker --authorize-only
