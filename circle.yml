@@ -13,7 +13,7 @@ dependencies:
   override:
     - npm install -g gulp-cli netlify-cli
     - cd www && npm install --only=dev
-    - script/auth-gcloud.sh
+    - bash ops/circleci/auth-gcloud.sh
     # Build the turnip docker image.
     - if [[ -e ~/docker/turnip.tar ]]; then docker load -i ~/docker/turnip.tar; fi
     - cd ops/turnip && bash build.sh
