@@ -1,6 +1,3 @@
-[submodule "ops/turnip/turnip"]
-	path = ops/turnip/turnip
+[submodule "turnip/src"]
+	path = turnip/src
 	url = git@github.com:Waverbase/turnip.git
-[submodule "apps/parse-server/code"]
-	path = apps/parse-server/code
-	url = git@github.com:Waverbase/parse-server.git
