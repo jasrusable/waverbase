@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: prod-turnip-service
+spec:
+  selector:
+    app: prod-turnip
+  ports:
+  - protocol: TCP
+    port: 22
+    targetPort: 9422
+  type: LoadBalancer

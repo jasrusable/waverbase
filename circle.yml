@@ -1,18 +1,39 @@
+machine:
+  services:
+    - docker
+  environment:
+    CLOUDSDK_CORE_DISABLE_PROMPTS: 1
+    CLOUDSDK_PYTHON_SITEPACKAGES: 1
+    CLOUDSDK_COMPUTE_ZONE: eu-west1-b
+    CLOUDSDK_CORE_PROJECT: $GCLOUD_PROJECT_ID
+  python:
+    version: 2.7.3
+
 dependencies:
   override:
     - npm install -g gulp-cli netlify-cli
     - cd www && npm install --only=dev
+    - bash ops/circleci/gcloud.sh
+    # Build the turnip docker image.
+    - if [[ -e ~/docker/turnip.tar ]]; then docker load -i ~/docker/turnip.tar; fi
+    - cd ops/turnip && bash build.sh
+    - mkdir -p ~/docker; docker save eu.gcr.io/api-project-1075799951054/prod-turnip > ~/docker/turnip.tar
+  cache_directories:
+    - ~/docker
 
 test:
   override:
     - cd www && gulp
+    # TODO: test turnip
 
 deployment:
   develop:
     branch: develop
     commands:
       - cd www && netlify deploy -e develop -t $NETLIFY_ACCESS_TOKEN
+      - cd ops/turnip && bash push.sh
   prod:
     branch: master
     commands:
       - cd www && netlify deploy -e prod -t $NETLIFY_ACCESS_TOKEN
+      - cd ops/turnip && bash push.sh

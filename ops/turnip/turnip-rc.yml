@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: prod-turnip
+spec:
+  template:
+    metadata:
+      labels:
+        app: prod-turnip
+    spec:
+      containers:
+      - name: turnip
+        image: eu.gcr.io/api-project-1075799951054/prod-turnip:latest
+        ports:
+        - containerPort: 9422
+        volumeMounts:
+        - mountPath: "/waverbase/repositories"
+          name: prod-repositories
+      volumes:
+        - name: prod-repositories
+          persistentVolumeClaim:
+            claimName: prod-repositories
