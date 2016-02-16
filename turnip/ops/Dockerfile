@@ -37,7 +37,7 @@ RUN pip install zope.component==4.2.2
 RUN pip install zope.event==4.1.0
 RUN pip install zope.interface==4.1.3
 
-COPY ./turnip /waverbase/turnip
+COPY ./src /waverbase/turnip
 
 WORKDIR /waverbase/turnip
 
