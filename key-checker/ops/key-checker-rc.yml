@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: prod-key-checker
+spec:
+  template:
+    metadata:
+      labels:
+        app: prod-key-checker
+    spec:
+      containers:
+        - name: key-checker
+          image: eu.gcr.io/api-project-1075799951054/prod-key-checker:latest
+          ports:
+            - containerPort: 9090
+          env:
+            - name: SECRET_KEY_CHECKER_MONGO_URL
+              # Supersecret, don't look!
+              value: mongodb://key-checker:way%20shape%20park%20visit@ds055865.mongolab.com:55865/waverbase-prod

@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: prod-key-checker
+spec:
+  selector:
+    app: prod-key-checker
+  ports:
+  - name: 'thrift'
+    protocol: TCP
+    port: 9090
+    targetPort: 9090
