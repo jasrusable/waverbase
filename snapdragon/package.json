@@ -12,6 +12,7 @@
   "dependencies": {
     "mongodb": "^2.1.7",
     "react": "^0.14.7",
-    "react-dom": "^0.14.7"
+    "react-dom": "^0.14.7",
+    "restify": "^4.0.4"
   }
 }
