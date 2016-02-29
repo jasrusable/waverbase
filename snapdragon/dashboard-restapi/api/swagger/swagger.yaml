@@ -28,10 +28,6 @@ paths:
           description: Success
           schema:
             $ref: "#/definitions/CollectionsResponse"
-        default:
-          description: Error
-          schema:
-            $ref: "#/definitions/ErrorResponse"
   /collections/{name}:
     x-swagger-router-controller: collections
     get:
