@@ -1,7 +1,7 @@
 swagger: "2.0"
 info:
   version: "0.0.1"
-  title: Hello World App
+  title: Dashboard RestAPI
 # during dev, should point to your local machine
 host: localhost:10010
 # basePath prefixes all resource paths 
@@ -18,26 +18,36 @@ consumes:
 produces:
   - application/json
 paths:
-  /hello:
-    # binds a127 app logic to a route
-    x-swagger-router-controller: hello_world
+  /collections:
+    x-swagger-router-controller: collections
     get:
-      description: Returns 'Hello' to the caller
-      # used as the method name of the controller
-      operationId: hello
+      description: Returns this apps Mongo collections
+      operationId: getCollectionNames
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/CollectionsResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /collections/{name}:
+    x-swagger-router-controller: collections
+    get:
+      description: Get schema of a specific collection
+      operationId: getCollection
       parameters:
         - name: name
-          in: query
-          description: The name of the person to whom to say hello
-          required: false
+          in: path
+          description: Name of the collection
+          required: true
           type: string
       responses:
         "200":
           description: Success
           schema:
-            # a pointer to a definition
-            $ref: "#/definitions/HelloWorldResponse"
-        # responses may fall through to errors
+            $ref: "#/definitions/CollectionsSchemaResponse"
         default:
           description: Error
           schema:
@@ -46,12 +56,29 @@ paths:
     x-swagger-pipe: swagger_raw
 # complex objects have schema definitions
 definitions:
-  HelloWorldResponse:
+  Collection:
+    type: string
+    description: The name of a collection
+  CollectionsResponse:
     required:
-      - message
+      - collections
     properties:
-      message:
-        type: string
+      collections:
+        type: array
+        items:
+          $ref: "#/definitions/Collection"
+        description: All this apps collections
+  CollectionsSchemaResponse:
+    required:
+      - collectionSchema
+      - size
+    properties:
+      collectionSchema: 
+        type: object
+        description: The schema of the collection
+      size:
+        type: number
+        description: The number of documents in the collection
   ErrorResponse:
     required:
       - message
