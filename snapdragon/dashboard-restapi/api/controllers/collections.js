@@ -10,7 +10,9 @@
 
   It is a good idea to list the modules that your application depends on in the package.json in the project root
  */
-var util = require('util');
+const util = require('util');
+const MongoClient = require('mongodb').MongoClient;
+const url = 'mongodb://localhost:27017/waverbase';
 
 /*
  Once you 'require' a module you can reference the things that it exports.  These are defined in module.exports.
@@ -48,6 +50,19 @@ Param 2: a handle to the response object
 */
 function getCollection(req, res) {
   const name = req.swagger.params.name.value;
+  // http://mongodb.github.io/node-mongodb-native/2.1/reference/crud/
+  MongoClient.connect(url, function(err, db) {
+    if(err) throw err;
+
+    var cursor = db.collection('schemas').find({}, {_id:0, name:1}).toArray(function(err, docs) {
+      console.log(docs);
+
+      db.close();
+    });
+  });
+
+  // Retrieve its schema from the schema collection
+  // Retrieve its size from itself (db.test_db.count())
 
   if (name != 'test_db'){
     res.json({
