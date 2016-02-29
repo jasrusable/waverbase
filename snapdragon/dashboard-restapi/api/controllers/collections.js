@@ -49,13 +49,19 @@ Param 2: a handle to the response object
 function getCollection(req, res) {
   const name = req.swagger.params.name.value;
 
-  res.json({
-    name: name,
-    collectionSchema: {
-      id: "number",
-      itemName: "string",
-      price: "number"
-    },
-    size: 0
-  });
+  if (name != 'test_db'){
+    res.json({
+      message: "Requested collection does not exist."
+    });
+  } else {
+    res.json({
+      name: name,
+      collectionSchema: {
+        id: "number",
+        itemName: "string",
+        price: "number"
+      },
+      size: 0
+    });
+  }
 }
