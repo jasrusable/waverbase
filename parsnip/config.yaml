@@ -1,0 +1,19 @@
+authentication_endpoint: http://xmlrpc-private.launchpad.dev:8087/authserver
+pack_backend_port: 19418 # Talk to the backend instead of the virtual server
+pack_frontend_port: 9418
+pack_virt_port: 19418 # Not used.
+private_ssh_key_path: ./test_keys/ssh-host-key
+public_ssh_key_path: ./test_keys/ssh-host-key.pub
+repo_api_port: 19417
+smart_http_port: 9419
+smart_ssh_port: 9422
+repo_store: /var/tmp/git.launchpad.dev
+turnip_log_dir: ./
+logfile: ./log.txt
+virtinfo_endpoint: http://xmlrpc-private.launchpad.dev:8087/git
+cgit_exec_path: /usr/lib/cgit/cgit.cgi
+cgit_data_path: /usr/share/cgit
+cgit_secret_path: null
+openid_provider_root: https://testopenid.dev/
+site_name: git.launchpad.dev
+main_site_root: https://launchpad.dev/
