@@ -38,8 +38,21 @@ module.exports = {
   Param 2: a handle to the response object
  */
 function getCollectionNames(req, res) {
-  var collections = ["test_db", "test_db2", "wtf_db"];
-  res.json({collections: collections});
+  MongoClient.connect(url, function(err, db) {
+    if(err) throw err;
+
+    db.collection('schemas').find({}, {_id:0, name:1}).toArray(function(err, docs) {
+      if(err) throw err;
+
+      const collections = [];
+
+      for (var i = 0; i < docs.length; ++i){
+        collections.push(docs[i]['name']);
+      }
+
+      res.json({collections: collections});
+    });
+  });
 }
 
 /*
@@ -55,10 +68,11 @@ function getCollection(req, res) {
   MongoClient.connect(url, function(err, db) {
     if(err) throw err;
 
-    var cursor = db.collection('schemas').find({}, {_id:0, name:1}).toArray(function(err, docs) {
+    db.collection('schemas').find({}, {_id:0, name:1}).toArray(function(err, docs) {
+      if(err) throw err;
 
-      var collectionFound = false;
       // Search the existing collections for the requested collection
+      var collectionFound = false;
       for (var i = 0; i < docs.length; ++i){
         var doc = docs[i];    
         if (doc["name"] == name) {
