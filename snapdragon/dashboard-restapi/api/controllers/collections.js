@@ -50,33 +50,42 @@ Param 2: a handle to the response object
 */
 function getCollection(req, res) {
   const name = req.swagger.params.name.value;
+
   // http://mongodb.github.io/node-mongodb-native/2.1/reference/crud/
   MongoClient.connect(url, function(err, db) {
     if(err) throw err;
 
     var cursor = db.collection('schemas').find({}, {_id:0, name:1}).toArray(function(err, docs) {
-      console.log(docs);
+
+      var collectionFound = false;
+      // Search the existing collections for the requested collection
+      for (var i = 0; i < docs.length; ++i){
+        var doc = docs[i];    
+        if (doc["name"] == name) {
+          collectionFound = true;
+          break;
+        }
+      }
+
+      if (collectionFound) {
+        // If this database exists get and return its meta data.
+          res.json({
+            name: name,
+            collectionSchema: {
+              id: "number",
+              itemName: "string",
+              price: "number"
+            },
+            size: 0
+          });
+      } else {
+        // If the collection does not exist return an error
+        res.json({
+          message: "Requested collection does not exist."
+        });
+      }
 
       db.close();
     });
   });
-
-  // Retrieve its schema from the schema collection
-  // Retrieve its size from itself (db.test_db.count())
-
-  if (name != 'test_db'){
-    res.json({
-      message: "Requested collection does not exist."
-    });
-  } else {
-    res.json({
-      name: name,
-      collectionSchema: {
-        id: "number",
-        itemName: "string",
-        price: "number"
-      },
-      size: 0
-    });
-  }
 }
