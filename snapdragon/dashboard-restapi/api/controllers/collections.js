@@ -51,6 +51,8 @@ function getCollectionNames(req, res) {
       }
 
       res.json({collections: collections});
+
+      db.close();
     });
   });
 }
@@ -63,8 +65,7 @@ Param 2: a handle to the response object
 */
 function getCollection(req, res) {
   const name = req.swagger.params.name.value;
-
-  // http://mongodb.github.io/node-mongodb-native/2.1/reference/crud/
+  
   MongoClient.connect(url, function(err, db) {
     if(err) throw err;
 
@@ -72,20 +73,26 @@ function getCollection(req, res) {
       if(err) throw err;
 
       if (docs.length > 0) {
-        // If this database exists get and return its meta data.
+        db.collection(name).count(function(err, count){
+          if(err) throw err;
+      
+          // If this database exists get and return its meta data.
           res.json({
             name: name,
             collectionSchema: docs[0]['schema'],
-            size: 0
+            size: count
           });
+
+          db.close();
+        });
       } else {
         // If the collection does not exist return an error
         res.json({
           message: "Requested collection does not exist."
         });
-      }
 
-      db.close();
+        db.close();
+      }
     });
   });
 }

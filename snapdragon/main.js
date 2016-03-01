@@ -2,7 +2,8 @@ const MongoClient = require('mongodb').MongoClient;
 const url = 'mongodb://localhost:27017/test_db';
 
 function main(db) {
-
+  // Do db stuff here
+  console.log('Hello There!');
 };
 
 
@@ -10,30 +11,22 @@ MongoClient.connect(url, function(err, db) {
     if(err) throw err;
 
     main(db);
+
+    db.close();
 });
 
 // http://mongodb.github.io/node-mongodb-native/2.1/getting-started/quick-tour/
 
-// check out express
+const restify = require('restify');
 
-  var MongoClient = require('mongodb').MongoClient
-    , format = require('util').format;
+function respond(req, res, next) {
+  res.send('hello ' + req.params.name);
+  next();
+}
 
-  MongoClient.connect('mongodb://127.0.0.1:27017/test', function(err, db) {
-    if(err) throw err;
+const server = restify.createServer();
+server.get('/hello/:name', respond);
 
-    var collection = db.collection('test_insert');
-    collection.insert({a:2}, function(err, docs) {
-
-      collection.count(function(err, count) {
-        console.log(format("count = %s", count));
-      });
-
-      // Locate all the entries using find
-      collection.find().toArray(function(err, results) {
-        console.dir(results);
-        // Let's close the db
-        db.close();
-      });
-    });
-  })
+server.listen(8080, function(){
+  console.log('%s listening at %s', server.name, server.url);
+});
