@@ -68,28 +68,14 @@ function getCollection(req, res) {
   MongoClient.connect(url, function(err, db) {
     if(err) throw err;
 
-    db.collection('schemas').find({}, {_id:0, name:1}).toArray(function(err, docs) {
+    db.collection('schemas').find({name: name}, {_id:0}).toArray(function(err, docs) {
       if(err) throw err;
 
-      // Search the existing collections for the requested collection
-      var collectionFound = false;
-      for (var i = 0; i < docs.length; ++i){
-        var doc = docs[i];    
-        if (doc["name"] == name) {
-          collectionFound = true;
-          break;
-        }
-      }
-
-      if (collectionFound) {
+      if (docs.length > 0) {
         // If this database exists get and return its meta data.
           res.json({
             name: name,
-            collectionSchema: {
-              id: "number",
-              itemName: "string",
-              price: "number"
-            },
+            collectionSchema: docs[0]['schema'],
             size: 0
           });
       } else {
