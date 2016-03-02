@@ -96,3 +96,20 @@ function getCollection(req, res) {
     });
   });
 }
+
+function addDocument(req, res) {
+  // Throw error if the collection is not found
+}
+
+function addCollection(req, res) {
+
+}
+
+function changeDocument(req, res) {
+  // Throw error if the collection is not found
+  // Throw error if the document is not found
+}
+
+function changeCollection(req, res) {
+  // Throw error if the collection is not found
+}
