@@ -18,6 +18,30 @@ consumes:
 produces:
   - application/json
 paths:
+  /:
+    x-swagger-router-controller: database
+    get:
+      description: List all databases in this Mongo instance.
+      operationId: showDatabases
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/Databases"
+  /{dbName}:
+    x-swagger-router-controller: database
+    get:
+      description: List all collections in database.
+      operationId: showCollections
+      parameters:
+        - name: dbName
+          in: path
+          type: string
+          required: true
+          description: The name of the database.
+      responses:
+        "200":
+          description: Success
   /collections:
     x-swagger-router-controller: collections
     get:
@@ -118,6 +142,33 @@ paths:
     x-swagger-pipe: swagger_raw
 # complex objects have schema definitions
 definitions:
+  Database:
+    type: object
+    required:
+      - name
+      - sizeOnDisk
+      - empty
+    properties:
+      name:
+        type: string
+      sizeOnDisk:
+        type: number
+      empty:
+        type: boolean
+  Databases:
+    required:
+      - databases
+      - totalSize
+      - ok
+    properties:
+      databases:
+        type: array
+        items: 
+          $ref: "#/definitions/Database"
+      totalSize:
+        type: number
+      ok:
+        type: boolean
   Document:
     type: object
   Documents:

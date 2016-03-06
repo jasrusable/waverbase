@@ -28,7 +28,8 @@ const url = 'mongodb://localhost:27017/waverbase';
  */
 module.exports = {
   getCollectionNames: getCollectionNames,
-  getCollection: getCollection
+  getCollection: getCollection,
+  addCollection: addCollection
 };
 
 /*
@@ -102,7 +103,20 @@ function addDocument(req, res) {
 }
 
 function addCollection(req, res) {
+  console.log("In addCollection");
 
+  var x = MongoClient.connect('mongodb://localhost:27017');
+  x.then(
+    function(db){
+      return db.admin().listDatabases();
+    }
+  ).then(function(dbs){
+    console.log(dbs);
+  });
+
+  res.json({
+    message: "Everything is working don't panic."
+  });
 }
 
 function changeDocument(req, res) {
