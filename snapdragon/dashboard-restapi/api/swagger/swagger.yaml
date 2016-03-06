@@ -42,6 +42,27 @@ paths:
       responses:
         "200":
           description: Success
+  /{dbName}/{collectionName}:
+    x-swagger-router-controller: collection
+    get:
+      description: Create a new collection.
+      operationId: addCollection
+      parameters:
+        - name: dbName
+          in: path
+          type: string
+          required: true
+          description: Database name.
+        - name: collectionName
+          in: path
+          type: string
+          required: true
+          description: Collection name.
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/ErrorResponse"
   /collections:
     x-swagger-router-controller: collections
     get:

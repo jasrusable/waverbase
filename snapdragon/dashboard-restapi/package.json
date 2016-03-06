@@ -8,6 +8,7 @@
   "license": "",
   "main": "app.js",
   "dependencies": {
+    "co": "^4.6.0",
     "restify": "^4.0.2",
     "swagger-restify-mw": "^0.1.0"
   },
