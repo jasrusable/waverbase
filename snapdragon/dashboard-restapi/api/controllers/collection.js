@@ -7,19 +7,18 @@ const url = 'mongodb://localhost:27017';
 
 
 module.exports = {
-    addCollection: addCollection
+
 };
 
-// http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#find
-function addCollection(req, res) {
-    const dbName = req.swagger.params.dbName.value;
-    const collectionName = req.swagger.params.collectionName.value;
+function findDocuments(req, res) {
+    // co(function*(){
+    //     var db = yield MongoClient.connect(url+'/'+dbName);
+    //     var collection = db.collection(collectionName);
+    //     var docs = yield collection.find().toArray();
 
-    co(function*(){
-        var db = yield MongoClient.connect(url+'/'+dbName);
-        var collection = db.collection(collectionName);
-        var docs = yield collection.find().toArray();
-
-        db.close();
-    });
+    //     console.log(docs);
+    //     db.close();
+    // });
 }
+
+// http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#find
