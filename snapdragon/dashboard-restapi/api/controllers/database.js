@@ -1,17 +1,20 @@
 'use strict';
 
+// TODO: remove this import
 const util = require('util');
 const MongoClient = require('mongodb').MongoClient;
 const co = require('co');
 const url = 'mongodb://localhost:27017';
-
 
 module.exports = {
     showDatabases: showDatabases,
     showCollections: showCollections,
     addCollection: addCollection,
     addDatabase: addDatabase,
-    getCollection: getCollection
+    getCollection: getCollection,
+    findDocument: findDocument,
+    insertDocument: insertDocument,
+    insertManyDocuments: insertManyDocuments
 };
 
 function showDatabases(req, res) {
@@ -89,4 +92,16 @@ function getCollection(req, res) {
         );
         db.close();
     });
+}
+
+function findDocument(req, res) {
+
+}
+
+function insertDocument(req, res) {
+
+}
+
+function insertManyDocuments(req, res) {
+
 }

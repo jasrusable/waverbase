@@ -110,33 +110,73 @@ paths:
           description: Database not found.
         "409":
           description: Collection already exists.
-  /collections/{name}:
-    x-swagger-router-controller: collections
-    post:
-      description: Insert a document into this collection.
-      operationId: addDocument
-      consumes:
-        - application/json
+  /{dbName}/{collectionName}/find:
+    x-swagger-router-controller: database
+    get:
+      description: Find a document in a given collection in a given database.
+      operationId: findDocument
       parameters:
-        - name: name
+        - name: dbName
           in: path
-          description: Name of the collection
-          required: true
           type: string
-        - name: documents
-          in: body
-          description: A JSON array storing documents to be inserted into the specified collection
-          schema:
-            $ref: "#/definitions/Documents"
+          required: true
+          description: Database name.
+        - name: collectionName
+          in: path
+          type: string
+          required: true
+          description: Collection name.
       responses:
         "200":
           description: Success
+  /{dbName}/{collectionName}/insert:
+    x-swagger-router-controller: database
+    post:
+      description: Insert a document in a given collection in a given database.
+      operationId: insertDocument
+      parameters:
+        - name: dbName
+          in: path
+          type: string
+          required: true
+          description: Database name.
+        - name: collectionName
+          in: path
+          type: string
+          required: true
+          description: Collection name.
+        - name: document
+          in: body
+          description: JSON document to insert.
           schema:
-            $ref: "#/definitions/AddCollectionResponse"
-        default:
-          description: Error
+            $ref: "#/definitions/Document"
+      responses:
+        "201":
+          description: Inserted new document in collection.
+  /{dbName}/{collectionName}/insertMany:
+    x-swagger-router-controller: database
+    post:
+      description: Insert multiple documents in a given collection in a given database.
+      operationId: insertManyDocuments
+      parameters:
+        - name: dbName
+          in: path
+          type: string
+          required: true
+          description: Database name.
+        - name: collectionName
+          in: path
+          type: string
+          required: true
+          description: Collection name.
+        - name: document
+          in: body
+          description: JSON document to insert.
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: "#/definitions/Documents"
+      responses:
+        "201":
+          description: Inserted new document in collection.
   /swagger:
     x-swagger-pipe: swagger_raw
 # complex objects have schema definitions
@@ -181,15 +221,3 @@ definitions:
         description: JSON object describing the schema of the new collection.
   DatabaseOptions:
     type: object
-  AddCollectionResponse:
-    required:
-      - message
-    properties:
-      message:
-        type: string
-  ErrorResponse:
-    required:
-      - message
-    properties:
-      message:
-        type: string
