@@ -95,13 +95,54 @@ function getCollection(req, res) {
 }
 
 function findDocument(req, res) {
+    const dbName = req.swagger.params.dbName.value;
+    const collectionName = req.swagger.params.collectionName.value;
 
+    co(function*(){
+        var db = yield MongoClient.connect(url+'/'+dbName);
+        var collection = yield db.createCollection(collectionName);
+
+        var docs = yield collection.find().toArray();
+
+        res.json(200, docs);
+        db.close();
+    });
 }
 
 function insertDocument(req, res) {
+    const dbName = req.swagger.params.dbName.value;
+    const collectionName = req.swagger.params.collectionName.value;
+    const doc = req.swagger.params.doc.value;
 
+    console.log(doc);
+
+    co(function*(){
+        var db = yield MongoClient.connect(url+'/'+dbName);
+        var collection = yield db.createCollection(collectionName);
+
+        yield collection.insert(doc);
+
+        res.send(201, 'Inserted document');
+
+        db.close();
+    });
 }
 
 function insertManyDocuments(req, res) {
+    const dbName = req.swagger.params.dbName.value;
+    const collectionName = req.swagger.params.collectionName.value;
+    const docs = req.swagger.params.docs.value;
 
+    console.log(docs);
+
+    co(function*(){
+        var db = yield MongoClient.connect(url+'/'+dbName);
+        var collection = yield db.createCollection(collectionName);
+
+        yield collection.insertMany(docs);
+
+        res.send(201, 'Inserted documents');
+
+        db.close();
+    });
 }

@@ -129,6 +129,8 @@ paths:
       responses:
         "200":
           description: Success
+        "404":
+          description: Collection or Database not found.
   /{dbName}/{collectionName}/insert:
     x-swagger-router-controller: database
     post:
@@ -145,7 +147,7 @@ paths:
           type: string
           required: true
           description: Collection name.
-        - name: document
+        - name: doc
           in: body
           description: JSON document to insert.
           schema:
@@ -153,6 +155,8 @@ paths:
       responses:
         "201":
           description: Inserted new document in collection.
+        "404":
+          description: Collection or Database not found.
   /{dbName}/{collectionName}/insertMany:
     x-swagger-router-controller: database
     post:
@@ -169,7 +173,7 @@ paths:
           type: string
           required: true
           description: Collection name.
-        - name: document
+        - name: docs
           in: body
           description: JSON document to insert.
           schema:
@@ -177,6 +181,8 @@ paths:
       responses:
         "201":
           description: Inserted new document in collection.
+        "404":
+          description: Collection or Database not found.
   /swagger:
     x-swagger-pipe: swagger_raw
 # complex objects have schema definitions
