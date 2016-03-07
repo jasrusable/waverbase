@@ -9,7 +9,9 @@ const url = 'mongodb://localhost:27017';
 module.exports = {
     showDatabases: showDatabases,
     showCollections: showCollections,
-    addCollection: addCollection
+    addCollection: addCollection,
+    addDatabase: addDatabase,
+    getCollection: getCollection
 };
 
 function showDatabases(req, res) {
@@ -52,6 +54,39 @@ function addCollection(req, res) {
         var collection = yield db.createCollection(collectionName);
 
         res.send(201, 'Collection created successfully.');
+        db.close();
+    });
+}
+
+function addDatabase(req, res) {
+    const dbName = req.swagger.params.dbName.value;
+
+    co(function*(){
+        var db = yield MongoClient.connect(url+'/'+dbName);
+        var collection = yield db.createCollection('test');
+        yield collection.drop();
+        res.send(201, 'Created a new Mongo database.');
+        db.close();
+    });
+}
+
+function getCollection(req, res) {
+    const dbName = req.swagger.params.dbName.value;
+    const collectionName = req.swagger.params.collectionName.value;
+
+    co(function*(){
+        var db = yield MongoClient.connect(url+'/'+dbName);
+        var collection = yield db.createCollection(collectionName);
+
+        // Collect the meta data
+        var stats = yield collection.stats();
+
+        res.send(
+            200, 
+            {
+                stats: stats
+            }
+        );
         db.close();
     });
 }
