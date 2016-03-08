@@ -14,9 +14,12 @@ module.exports = {
     getCollection: getCollection,
     findDocument: findDocument,
     insertDocument: insertDocument,
-    insertManyDocuments: insertManyDocuments
+    insertManyDocuments: insertManyDocuments,
+    dropDatabase: dropDatabase,
+    dropCollection: dropCollection
 };
 
+// TODO: change to generator pattern
 function showDatabases(req, res) {
     MongoClient.connect(url)
         .then(function(db){
@@ -28,6 +31,7 @@ function showDatabases(req, res) {
         });
 }
 
+// TODO: change to generator pattern
 function showCollections(req, res) {
     const dbName = req.swagger.params.dbName.value;
 
@@ -142,6 +146,36 @@ function insertManyDocuments(req, res) {
         yield collection.insertMany(docs);
 
         res.send(201, 'Inserted documents');
+
+        db.close();
+    });
+}
+
+function dropDatabase(req, res) {
+    const dbName = req.swagger.params.dbName.value;
+
+    co(function*() {
+        var db = yield MongoClient.connect(url+'/'+dbName);
+
+        yield db.dropDatabase();
+
+        res.send(204, 'Dropped Database');
+
+        db.close();
+    });
+}
+
+function dropCollection(req, res) {
+    const dbName = req.swagger.params.dbName.value;
+    const collectionName = req.swagger.params.collectionName.value;
+
+    co(function*() {
+        var db = yield MongoClient.connect(url+'/'+dbName);
+        var collection = yield db.createCollection(collectionName);
+
+        yield collection.drop();
+
+        res.send(204, 'Dropped Collection');
 
         db.close();
     });

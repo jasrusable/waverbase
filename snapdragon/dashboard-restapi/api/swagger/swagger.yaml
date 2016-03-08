@@ -40,9 +40,9 @@ paths:
           required: true
           description: The name of the database.
       responses:
-        "200":
+        200:
           description: Success
-        "404":
+        404:
           description: Database not found.
     post:
       description: Create a new Mongo database in this instance.
@@ -59,10 +59,24 @@ paths:
           schema:
             $ref: "#/definitions/DatabaseOptions"
       responses:
-        "201":
+        201:
           description: Database created successfully.
-        "409":
+        409:
           description: Database already exists.
+    delete:
+      description: Drop a database on this Mongo instance.
+      operationId: dropDatabase
+      parameters:
+        - name: dbName
+          in: path
+          type: string
+          required: true
+          description: The database to delete.
+      responses:
+        204:
+          description: No Content
+        404:
+          description: Not Found
   /{dbName}/{collectionName}:
     x-swagger-router-controller: database
     get:
@@ -110,6 +124,25 @@ paths:
           description: Database not found.
         "409":
           description: Collection already exists.
+    delete:
+      description: Drop a collection.
+      operationId: dropCollection
+      parameters:
+        - name: dbName
+          in: path
+          type: string
+          required: true
+          description: Database name.
+        - name: collectionName
+          in: path
+          type: string
+          required: true
+          description: Collection name.
+      responses:
+        204:
+          description: No Content
+        404:
+          description: Not Found
   /{dbName}/{collectionName}/find:
     x-swagger-router-controller: database
     get:
