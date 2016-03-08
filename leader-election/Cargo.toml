@@ -1,0 +1,6 @@
+[package]
+name = "leader-election"
+version = "0.1.0"
+authors = ["Yaseen Hamdulay <yaseen@hamdulay.co.za>"]
+
+[dependencies]
