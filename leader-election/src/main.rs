@@ -10,6 +10,7 @@ use std::sync::mpsc::{Receiver, Sender, channel};
 use std::io::{Read, Write};
 use std::time::Duration;
 use std::str;
+use std::process::Command;
 
 #[derive(RustcEncodable, RustcDecodable)]
 enum MessageType {
@@ -155,7 +156,7 @@ impl Peers {
                     },
                     Err(_) => {
                         println!("Waiting...");
-                        thread::sleep(Duration::new(3, 0));
+                        thread::sleep(Duration::new(1, 0));
                     }
                 }
             }
@@ -169,7 +170,7 @@ impl Peers {
     }
 }
 
-fn elect_leader(candidates: &Vec<String>, me: &String) {
+fn elect_leader(candidates: &Vec<String>, me: &String) -> bool {
     let (tx_peers, rx_peers) = channel();
     let mut peers = Peers::new();
 
@@ -216,18 +217,21 @@ fn elect_leader(candidates: &Vec<String>, me: &String) {
     for other_winner in other_winners {
         if other_winner.winner != max_number_sender {
             println!("failed to reach agreement");
+            return false;
         }
         
     }
-    
+
+    max_number_sender == me.to_string()
 }
 
 fn main() {
     let args = env::args();
     // program name
     let mut args = args.skip(1);
+    let master_script = args.next().unwrap();
     let mut candidates : Vec<String> = Vec::new();
-    for _ in 1..(env::args().count()-1) {
+    for _ in 1..(env::args().count()-2) {
         let candidate = args.next().unwrap();
     	candidates.push(candidate);
     }
@@ -237,5 +241,17 @@ fn main() {
     let me = candidates[me_index-1].clone();
     candidates.remove(me_index-1);
 
-    elect_leader(&candidates, &me);
+    let leader_arg: &str;
+    if elect_leader(&candidates, &me) {
+        leader_arg = "master";
+    } else {
+        leader_arg = "slave";
+    }
+        
+    Command::new("bash")
+        .arg(master_script)
+        .arg(leader_arg)
+        .spawn()
+        .ok()
+        .expect("Failed to run master script");
 }
