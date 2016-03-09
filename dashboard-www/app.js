@@ -1,4 +1,3 @@
-
 var TestComponent = React.createClass({
     render: function() {
         return (
