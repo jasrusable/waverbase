@@ -25,19 +25,70 @@ struct Message {
     sender: String
 }
 
-fn read_exactly(stream: &mut TcpStream, nbytes: u64) -> String {
-    let mut output = String::new();
-    let mut received = 0;
-
-    while nbytes-received > 0 {
-        let mut buf = [0; 4096];
-        let received_now = stream.read(&mut buf).unwrap();
-        received += received_now as u64;
-        output.push_str(str::from_utf8(&buf[0 .. received_now]).unwrap());
-    }
-    output
+struct Remote {
+    stream: TcpStream,
+    current_length: i64,
+    buf: Vec<u8>
 }
 
+impl Remote {
+    fn new(stream: TcpStream) -> Remote {
+        Remote {
+            stream: stream,
+            current_length: 0,
+            buf: Vec::new()
+        }
+    }
+    
+    fn send(&mut self, message: &[u8]) {
+        let message_size : usize = message.len();
+        let message_size = [
+            (message_size & 0xFF) as u8,
+            ((message_size >> 8) & 0xFF) as u8,
+            ((message_size >> 16) & 0xFF) as u8,
+            ((message_size >> 24) & 0xFF) as u8
+        ];
+        self.stream.write(&message_size).unwrap();
+        self.stream.write(message).unwrap();
+    }
+
+    fn read_into_buf(&mut self) {
+        let mut b = [0u8; 4096];
+        let read = self.stream.read(&mut b).unwrap();
+        if read > 0 {
+            self.buf.extend_from_slice(&b[0..read]);
+        }
+    }
+    
+    
+    // returns a single message from the socket
+    fn receive(&mut self) -> Vec<u8> {
+        loop {
+            // remove messages from buffer
+            if self.current_length > 0 && self.buf.len() >= (self.current_length as usize) {
+                let remain = self.buf.split_off(self.current_length as usize);
+                let message = self.buf.clone();
+                self.buf = remain;
+                assert_eq!(message.len(), self.current_length as usize);
+
+                self.current_length = 0;
+                return message;
+            } else {
+                self.read_into_buf();
+            }
+
+            if self.current_length == 0 {
+                self.current_length = ((self.buf[0] as u64) |
+                                 (self.buf[1] as u64) >> 8 |
+                                (self.buf[2] as u64) >> 16 | 
+                                (self.buf[3] as u64) >> 24) as i64;
+                self.buf = self.buf.split_off(4);
+            }
+        }
+        
+    }
+    
+}
 
 fn listen_for_peers(listen_at: &str, stream_channel: Sender<TcpStream>) {
     let stream_channel = stream_channel.clone();
@@ -59,8 +110,8 @@ fn listen_for_peers(listen_at: &str, stream_channel: Sender<TcpStream>) {
 
 
 struct Peers {
-    outgoing_peers: Vec<TcpStream>,
-    incoming_peers: Vec<TcpStream>,
+    outgoing_peers: Vec<Remote>,
+    incoming_peers: Vec<Remote>,
 }
 
 impl Peers {
@@ -74,16 +125,9 @@ impl Peers {
     fn send_all(&mut self, message: Message) {
         let message = json::encode(&message).unwrap();
         let message = message.as_bytes();
-        let message_size : usize = message.len();
-        let message_size = [
-            (message_size & 0xFF) as u8,
-            ((message_size >> 8) & 0xFF) as u8,
-            ((message_size >> 16) & 0xFF) as u8,
-            ((message_size >> 24) & 0xFF) as u8
-        ];
+
         for outgoing_peer in &mut self.outgoing_peers {
-            outgoing_peer.write(&message_size).unwrap();
-            outgoing_peer.write(message).unwrap();
+            outgoing_peer.send(&message);
         }
     }
 
@@ -91,14 +135,9 @@ impl Peers {
         let mut messages = Vec::new();
 
         for incoming_peer in &mut self.incoming_peers {
-            let mut size : [u8; 4] = [0, 0, 0, 0];
-            incoming_peer.read_exact(&mut size).unwrap();
-            let size = (size[0] as u64) |
-                 (size[1] as u64) << 8  |
-                 (size[2] as u64) << 16 |
-                 (size[3] as u64) << 24;
-            let serialized = read_exactly(incoming_peer, size);
-            let message: Message = json::decode(serialized.as_str()).unwrap();
+            let message = incoming_peer.receive();
+            let message = str::from_utf8(message.as_slice()).unwrap();
+            let message: Message = json::decode(message).unwrap();
             messages.push(message);
         }
         messages
@@ -110,12 +149,13 @@ impl Peers {
                 let stream = TcpStream::connect(peer_string.as_str());
                 match stream {
                     Ok(stream) => {
-                        self.outgoing_peers.push(stream);
+                        println!("Connected to {}", peer_string);
+                        self.outgoing_peers.push(Remote::new(stream));
                         break;
                     },
                     Err(_) => {
                         println!("Waiting...");
-                        thread::sleep(Duration::new(1, 0));
+                        thread::sleep(Duration::new(3, 0));
                     }
                 }
             }
@@ -124,7 +164,7 @@ impl Peers {
 
     fn wait_for_peers(&mut self, stream_channel: Receiver<TcpStream>, num_candidates: usize) {
         for _ in 0..num_candidates {
-            self.incoming_peers.push(stream_channel.recv().unwrap());
+            self.incoming_peers.push(Remote::new(stream_channel.recv().unwrap()));
         }
     }
 }
