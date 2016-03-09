@@ -15,7 +15,7 @@ use std::process::Command;
 #[derive(RustcEncodable, RustcDecodable)]
 enum MessageType {
     AnnounceNumber,
-    AcknowledgeWinner
+    AcknowledgeWinner,
 }
 
 #[derive(RustcEncodable, RustcDecodable)]
@@ -23,13 +23,13 @@ struct Message {
     message_type: MessageType,
     my_number: u64,
     winner: String,
-    sender: String
+    sender: String,
 }
 
 struct Remote {
     stream: TcpStream,
     current_length: i64,
-    buf: Vec<u8>
+    buf: Vec<u8>,
 }
 
 impl Remote {
@@ -37,18 +37,16 @@ impl Remote {
         Remote {
             stream: stream,
             current_length: 0,
-            buf: Vec::new()
+            buf: Vec::new(),
         }
     }
-    
+
     fn send(&mut self, message: &[u8]) {
-        let message_size : usize = message.len();
-        let message_size = [
-            (message_size & 0xFF) as u8,
-            ((message_size >> 8) & 0xFF) as u8,
-            ((message_size >> 16) & 0xFF) as u8,
-            ((message_size >> 24) & 0xFF) as u8
-        ];
+        let message_size: usize = message.len();
+        let message_size = [(message_size & 0xFF) as u8,
+                            ((message_size >> 8) & 0xFF) as u8,
+                            ((message_size >> 16) & 0xFF) as u8,
+                            ((message_size >> 24) & 0xFF) as u8];
         self.stream.write(&message_size).unwrap();
         self.stream.write(message).unwrap();
     }
@@ -60,8 +58,8 @@ impl Remote {
             self.buf.extend_from_slice(&b[0..read]);
         }
     }
-    
-    
+
+
     // returns a single message from the socket
     fn receive(&mut self) -> Vec<u8> {
         loop {
@@ -79,23 +77,22 @@ impl Remote {
             }
 
             if self.current_length == 0 {
-                self.current_length = ((self.buf[0] as u64) |
-                                 (self.buf[1] as u64) >> 8 |
-                                (self.buf[2] as u64) >> 16 | 
-                                (self.buf[3] as u64) >> 24) as i64;
+                self.current_length = ((self.buf[0] as u64) | (self.buf[1] as u64) >> 8 |
+                                       (self.buf[2] as u64) >> 16 |
+                                       (self.buf[3] as u64) >>
+                                       24) as i64;
                 self.buf = self.buf.split_off(4);
             }
         }
-        
+
     }
-    
 }
 
 fn listen_for_peers(listen_at: &str, stream_channel: Sender<TcpStream>) {
     let stream_channel = stream_channel.clone();
     let listener = TcpListener::bind(listen_at).unwrap();
     println!("Listening at {}", listen_at);
-    thread::spawn(move|| {
+    thread::spawn(move || {
         for stream in listener.incoming() {
             match stream {
                 Ok(stream) => {
@@ -119,10 +116,10 @@ impl Peers {
     pub fn new() -> Peers {
         Peers {
             outgoing_peers: vec![],
-            incoming_peers: vec![]
+            incoming_peers: vec![],
         }
     }
-    
+
     fn send_all(&mut self, message: Message) {
         let message = json::encode(&message).unwrap();
         let message = message.as_bytes();
@@ -153,7 +150,7 @@ impl Peers {
                         println!("Connected to {}", peer_string);
                         self.outgoing_peers.push(Remote::new(stream));
                         break;
-                    },
+                    }
                     Err(_) => {
                         println!("Waiting...");
                         thread::sleep(Duration::new(1, 0));
@@ -187,7 +184,7 @@ fn elect_leader(candidates: &Vec<String>, me: &String) -> bool {
         message_type: MessageType::AnnounceNumber,
         my_number: number,
         winner: "".to_string(),
-        sender: me.clone()
+        sender: me.clone(),
     });
 
     println!("Waiting for numbers");
@@ -197,7 +194,9 @@ fn elect_leader(candidates: &Vec<String>, me: &String) -> bool {
     let mut max_number_sender = me.to_string();
 
     for other_number in announce_numbers {
-        println!("other number {} {}", other_number.my_number, other_number.sender);
+        println!("other number {} {}",
+                 other_number.my_number,
+                 other_number.sender);
         if other_number.my_number > max_number {
             max_number = other_number.my_number;
             max_number_sender = other_number.sender;
@@ -210,7 +209,7 @@ fn elect_leader(candidates: &Vec<String>, me: &String) -> bool {
         message_type: MessageType::AcknowledgeWinner,
         my_number: number,
         winner: max_number_sender.clone(),
-        sender: me.to_string()
+        sender: me.to_string(),
     });
 
     let other_winners = peers.receive_all();
@@ -219,7 +218,7 @@ fn elect_leader(candidates: &Vec<String>, me: &String) -> bool {
             println!("failed to reach agreement");
             return false;
         }
-        
+
     }
 
     max_number_sender == me.to_string()
@@ -230,16 +229,16 @@ fn main() {
     // program name
     let mut args = args.skip(1);
     let master_script = args.next().unwrap();
-    let mut candidates : Vec<String> = Vec::new();
-    for _ in 1..(env::args().count()-2) {
+    let mut candidates: Vec<String> = Vec::new();
+    for _ in 1..(env::args().count() - 2) {
         let candidate = args.next().unwrap();
-    	candidates.push(candidate);
+        candidates.push(candidate);
     }
 
     let me_index = args.next().unwrap();
-    let me_index : usize = me_index.parse().unwrap();
-    let me = candidates[me_index-1].clone();
-    candidates.remove(me_index-1);
+    let me_index: usize = me_index.parse().unwrap();
+    let me = candidates[me_index - 1].clone();
+    candidates.remove(me_index - 1);
 
     let leader_arg: &str;
     if elect_leader(&candidates, &me) {
@@ -247,7 +246,7 @@ fn main() {
     } else {
         leader_arg = "slave";
     }
-        
+
     Command::new("bash")
         .arg(master_script)
         .arg(leader_arg)
