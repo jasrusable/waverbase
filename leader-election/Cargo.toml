@@ -4,3 +4,10 @@ version = "0.1.0"
 authors = ["Yaseen Hamdulay <yaseen@hamdulay.co.za>"]
 
 [dependencies]
+rustc-serialize = "0.3"
+rand = "0.3"
+
+[profile.dev]
+debug = true
+debug-assertions = true  # Controls whether debug assertions are enabled
+

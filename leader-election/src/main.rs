@@ -8,14 +8,16 @@ use std::net::{TcpListener, TcpStream};
 use std::thread;
 use std::sync::mpsc::{Receiver, Sender, channel};
 use std::io::{Read, Write};
+use std::time::Duration;
+use std::str;
 
-#[derive(RustcEncodable)]
+#[derive(RustcEncodable, RustcDecodable)]
 enum MessageType {
     AnnounceNumber,
     AcknowledgeWinner
 }
 
-#[derive(RustcEncodable)]
+#[derive(RustcEncodable, RustcDecodable)]
 struct Message {
     message_type: MessageType,
     my_number: u64,
@@ -23,9 +25,24 @@ struct Message {
     sender: String
 }
 
+fn read_exactly(stream: &mut TcpStream, nbytes: u64) -> String {
+    let mut output = String::new();
+    let mut received = 0;
+
+    while nbytes-received > 0 {
+        let mut buf = [0; 4096];
+        let received_now = stream.read(&mut buf).unwrap();
+        received += received_now as u64;
+        output.push_str(str::from_utf8(&buf[0 .. received_now]).unwrap());
+    }
+    output
+}
+
+
 fn listen_for_peers(listen_at: &str, stream_channel: Sender<TcpStream>) {
     let stream_channel = stream_channel.clone();
     let listener = TcpListener::bind(listen_at).unwrap();
+    println!("Listening at {}", listen_at);
     thread::spawn(move|| {
         for stream in listener.incoming() {
             match stream {
@@ -68,28 +85,40 @@ impl Peers {
             outgoing_peer.write(&message_size).unwrap();
             outgoing_peer.write(message).unwrap();
         }
-        unimplemented!();
-        
     }
 
     fn receive_all(&mut self) -> Vec<Message> {
-        //let mut messages = Vec<Message>;
+        let mut messages = Vec::new();
 
         for incoming_peer in &mut self.incoming_peers {
             let mut size : [u8; 4] = [0, 0, 0, 0];
             incoming_peer.read_exact(&mut size).unwrap();
-            let size = (size[0] as u64) &
-                (size[1] as u64) << 8 &
-                (size[2] as u64) << 16 &
-                (size[3] as u64) << 24;
-
+            let size = (size[0] as u64) |
+                 (size[1] as u64) << 8  |
+                 (size[2] as u64) << 16 |
+                 (size[3] as u64) << 24;
+            let serialized = read_exactly(incoming_peer, size);
+            let message: Message = json::decode(serialized.as_str()).unwrap();
+            messages.push(message);
         }
-        unimplemented!();
+        messages
     }
 
     fn connect_to_peers(&mut self, peers: &Vec<String>) {
         for peer_string in peers {
-            self.outgoing_peers.push(TcpStream::connect(peer_string.as_str()).unwrap());
+            for _ in 0..10 {
+                let stream = TcpStream::connect(peer_string.as_str());
+                match stream {
+                    Ok(stream) => {
+                        self.outgoing_peers.push(stream);
+                        break;
+                    },
+                    Err(_) => {
+                        println!("Waiting...");
+                        thread::sleep(Duration::new(1, 0));
+                    }
+                }
+            }
         }
     }
 
@@ -104,42 +133,57 @@ fn elect_leader(candidates: &Vec<String>, me: &String) {
     let (tx_peers, rx_peers) = channel();
     let mut peers = Peers::new();
 
-    listen_for_peers("127.0.0.1:8000", tx_peers);
+    listen_for_peers(me, tx_peers);
     peers.connect_to_peers(&candidates);
-    peers.wait_for_peers(rx_peers, candidates.len()-1);
+    peers.wait_for_peers(rx_peers, candidates.len());
 
     let mut rng = rand::thread_rng();
     let number = Range::new(0, 1_000_000).ind_sample(&mut rng);
+
+    println!("My number is {}", number);
 
     peers.send_all(Message {
         message_type: MessageType::AnnounceNumber,
         my_number: number,
         winner: "".to_string(),
-        sender: "NOTME".to_string()
+        sender: me.clone()
     });
 
+    println!("Waiting for numbers");
     let announce_numbers = peers.receive_all();
 
     let mut max_number = number;
-    let mut max_number_sender = "ME".to_string();
+    let mut max_number_sender = me.to_string();
 
     for other_number in announce_numbers {
+        println!("other number {} {}", other_number.my_number, other_number.sender);
         if other_number.my_number > max_number {
             max_number = other_number.my_number;
             max_number_sender = other_number.sender;
         }
     }
 
+    println!("The winner is {}", max_number_sender);
+
     peers.send_all(Message {
-        message_type: MessageType::AnnounceNumber,
+        message_type: MessageType::AcknowledgeWinner,
         my_number: number,
-        winner: "".to_string(),
-        sender: "NOTME".to_string()
+        winner: max_number_sender.clone(),
+        sender: me.to_string()
     });
+
+    let other_winners = peers.receive_all();
+    for other_winner in other_winners {
+        if other_winner.winner != max_number_sender {
+            println!("failed to reach agreement");
+        }
+        
+    }
+    
 }
 
 fn main() {
-    let mut args = env::args();
+    let args = env::args();
     // program name
     let mut args = args.skip(1);
     let mut candidates : Vec<String> = Vec::new();
@@ -150,9 +194,8 @@ fn main() {
 
     let me_index = args.next().unwrap();
     let me_index : usize = me_index.parse().unwrap();
+    let me = candidates[me_index-1].clone();
     candidates.remove(me_index-1);
 
-    let me = &candidates[me_index-1];
-
-    elect_leader(&candidates, me);
+    elect_leader(&candidates, &me);
 }
