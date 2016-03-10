@@ -60,10 +60,10 @@ impl Remote {
     }
 
 
-    // returns a single message from the socket
+    // returns a single complete message from the socket
     fn receive(&mut self) -> Vec<u8> {
         loop {
-            // remove messages from buffer
+            // remove messages from buffer if the buffer contains an entire message
             if self.current_length > 0 && self.buf.len() >= (self.current_length as usize) {
                 let remain = self.buf.split_off(self.current_length as usize);
                 let message = self.buf.clone();
@@ -76,7 +76,8 @@ impl Remote {
                 self.read_into_buf();
             }
 
-            if self.current_length == 0 {
+            // if we do not have a length try and read one from the buffer
+            if self.current_length == 0 && self.buf.len() >= 4 {
                 self.current_length = ((self.buf[0] as u64) | (self.buf[1] as u64) >> 8 |
                                        (self.buf[2] as u64) >> 16 |
                                        (self.buf[3] as u64) >>
@@ -187,7 +188,6 @@ fn elect_leader(candidates: &Vec<String>, me: &String) -> bool {
         sender: me.clone(),
     });
 
-    println!("Waiting for numbers");
     let announce_numbers = peers.receive_all();
 
     let mut max_number = number;
@@ -197,6 +197,10 @@ fn elect_leader(candidates: &Vec<String>, me: &String) -> bool {
         println!("other number {} {}",
                  other_number.my_number,
                  other_number.sender);
+        if other_number.my_number == max_number {
+            panic!("Number collision {} == {} on host {}", other_number.my_number, max_number, other_number.sender);
+        }
+        
         if other_number.my_number > max_number {
             max_number = other_number.my_number;
             max_number_sender = other_number.sender;
