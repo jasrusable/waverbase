@@ -19,6 +19,10 @@ struct App {
 
 
 service AppService {
+  void createApp(
+    1: string name,
+    2: string creator
+  ),
   App getApp(
     1: string name,
     2: string creator
@@ -29,7 +33,8 @@ service AppService {
   Address getParseServerAddress(
     1: App app
   ),
-  list<Address> getMongoAddress(
+  list<Address> getMongoConnectionString(
     1: App app
-  )
+  ),
+  string ping()
 }
