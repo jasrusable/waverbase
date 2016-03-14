@@ -18,13 +18,9 @@ enum MessageType {
     AcknowledgeWinner,
 }
 
-#[derive(RustcEncodable, RustcDecodable)]
-struct Message {
-    message_type: MessageType,
-    my_number: u64,
-    winner: String,
-    sender: String,
-}
+#[derive(RustcEncodable, RustcDecodable)] struct Message {
+message_type: MessageType, my_number: u64, winner: String, sender:
+String, }
 
 struct Remote {
     stream: TcpStream,
@@ -203,7 +199,7 @@ fn elect_leader(candidates: &Vec<String>, me: &String) -> bool {
                    max_number,
                    other_number.sender);
         }
-
+        
         if other_number.my_number > max_number {
             max_number = other_number.my_number;
             max_number_sender = other_number.sender;
