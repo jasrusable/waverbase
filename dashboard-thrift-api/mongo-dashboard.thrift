@@ -18,7 +18,5 @@ service mongo_svc {
     */
     Databases listDatabases(1:string instanceUrl),
     list<string> listCollections(1:string instanceUrl, 2:string database),
-    string getDatabase(1:string instanceUrl, 2:string database),
-    string getCollection(1:string instanceUrl, 2:string database, 3:string collection),
-    list<string> listDocuments(1:string instanceUrl, 2:string database, 3:string collection)
+    list<map<string, string>> listDocuments(1:string instanceUrl, 2:string database, 3:string collection)
 }

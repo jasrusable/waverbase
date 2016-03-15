@@ -20,23 +20,41 @@ const mongo_handler = {
   },
 
   listCollections: function(instanceUrl, database, result) {
-    console.log("listCollections!");
-    result(null);
+    instanceUrl = 'mongodb://localhost:27017';
+    database = 'waverbase';
+
+
+    co(function*() {
+      const db = yield MongoClient.connect(instanceUrl + '/' + database);
+      const collections = yield db.collections();
+
+      if (collections.length > 0) {
+        var collectionNames = collections.map(function(collection) {
+            return collection['s']['name'];
+        });
+
+        result(null, collectionNames);
+      }
+
+      db.close();
+    });
   },
 
-  getDatabase: function(instanceUrl, database, result) {
-    console.log("getDatabase!");
-    result(null);
-  },
-
-  getCollection: function(instanceUrl, database, collection, result) {
-    console.log("getCollection");
-    result(null);
-  },
-
+  // TODO: change this to a find with limit
   listDocuments: function(instanceUrl, database, collection, result) {
-    console.log("listDocuments");
-    result(null);
+    instanceUrl = 'mongodb://localhost:27017';
+    database = 'waverbase';
+    collection = 'test_db';
+
+    co(function*(){
+      const db = yield MongoClient.connect(instanceUrl + '/' + database);
+      const col = db.collection(collection);
+      const docs = yield col.find().toArray();
+
+      result(null, docs);
+
+      db.close();
+    });
   }
 };
 
