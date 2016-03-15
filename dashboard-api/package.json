@@ -11,7 +11,8 @@
     "co": "^4.6.0",
     "mongodb": "^2.1.7",
     "restify": "^4.0.2",
-    "swagger-restify-mw": "^0.1.0"
+    "swagger-restify-mw": "^0.1.0",
+    "thrift": "^0.9.3"
   },
   "devDependencies": {
     "should": "^7.1.0",
