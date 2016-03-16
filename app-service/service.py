@@ -187,7 +187,7 @@ class MongoReplica(object):
 
 
 class AppHandler(object):
-  def createApp(self, name, creator):
+  def create_app(self, name, creator):
     db = mongo_connection()
     app = {
         'name': name,
@@ -210,27 +210,18 @@ class AppHandler(object):
         print 'App already exists in db'
 
     mongo.create()
-
   
-  def getApp(self, name, creator):
+  def get_app(self, name, creator):
     db = mongo_connection()
     return db.apps.find_one({'name': name, 'creator': creator})
 
 
-  def initialiseApp(self, app):
-    db = mongo_connection()
-    app = db.apps.find_one({'name': name, 'creator': creator})
-    if app['mongo_server_state'] == UNITIALISED:
-        replication_controller = open('mongo-controller-template.yaml').read()
-        replication_controller.replace('<app>', app.name)
-
-
-  def getParseServerAddress(self, app):
+  def get_parse_server_address(self, app):
     db = mongo_connection()
     app = db.apps.find_one({'name': app['name'], 'creator': app['creator']})
     return app['parse_address']
 
-  def getMongoConnectionString(self, app):
+  def get_mongo_connection_string(self, app):
     db = mongo_connection()
     app = db.apps.find_one({'name': app['name'], 'creator': app['creator']})
     return app['mongo_connection_string']

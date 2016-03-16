@@ -19,21 +19,22 @@ struct App {
 
 
 service AppService {
-  void createApp(
+  void create_app(
     1: string name,
     2: string creator
   ),
-  App getApp(
+  bool delete_app(
+    1: string name,
+    2: string creator
+   ),
+  App get_app(
     1: string name,
     2: string creator
   ),
-  void initialiseApp(
+  Address get_parse_server_address(
     1: App app
   ),
-  Address getParseServerAddress(
-    1: App app
-  ),
-  list<Address> getMongoConnectionString(
+  list<Address> get_mongo_connection_string(
     1: App app
   ),
   string ping()
