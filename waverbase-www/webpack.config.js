@@ -3,20 +3,32 @@ var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-	entry: './src/entry.jsx',
+	entry: ['babel-polyfill', './src/entry.jsx'],
 	output: {
 		path: path.join(__dirname, 'build'),
 		filename: 'app.js',
 	},
 	module: {
 		loaders: [
+			{
+				test: /thrift.js$/,
+				loader: 'exports-loader',
+				query: 'Thrift',
+			},
 			// required for react jsx
 			{
 				test: /\.jsx$/,
-				loader: 'babel-loader' ,
+				loader: 'babel-loader',
 				query: {
 	        presets: ['es2015', 'react'],
       	},
+			},
+			{
+				test: /src\/.*\.js$/,
+				loader: 'babel-loader',
+				query: {
+					presets: ['es2015'],
+				},
 			},
 			{
 				test: /\.css$/,
@@ -28,10 +40,14 @@ module.exports = {
 			},
 		],
 	},
+	resolve: {
+		alias: {
+			Thrift: path.join(__dirname, './thrift.js'),
+		}
+	},
 	resolveLoader: {
-	 alias: {
-		 'thrift-loader': path.join(__dirname, "../thrift-loader"),
-	 }
+	 root: path.join(__dirname, './node_modules'),
+	 modulesDirectories: ['../'],
 	},
 	plugins: [
 		new HtmlWebpackPlugin({
