@@ -57,6 +57,15 @@ class Gcloud:
 
       time.sleep(1)
 
+  def delete_ip(self, name):
+    result = self.compute.addresses().delete(
+      project=GCLOUD_PROJECT,
+      region=GCLOUD_REGION,
+      body={
+        "name": name
+      }
+    ).execute()
+
 
   def reserve_ip(self, name):
     print 'Reserving IP address'
@@ -98,6 +107,13 @@ class Gcloud:
           "name": name,
         }
     ).execute()
+
+  def delete_disk(self, name):
+    disk = self.compute.disks().insert(
+        project=GCLOUD_PROJECT,
+        zone=GCLOUD_ZONE,
+        disk=name
+    ).execute()
     
 
 # Go Globals!
@@ -107,6 +123,10 @@ class MongoReplica(object):
   def __init__(self, creator, app):
     self.creator = creator
     self.app = app
+    self.args = {
+      'creator': self.creator,
+      'app': self.app,
+    }
 
   @property
   def num_replicas(self):
@@ -127,34 +147,46 @@ class MongoReplica(object):
         print '%d mongo replicas already exist' % self.num_replicas
 
   def add(self, replica, disk_size=START_DISK_SIZE):
-    args = {
-      'creator': self.creator,
-      'app': self.app,
-      'size': replica,
-    }
-
-    ip_address = gcloud.reserve_ip('ip-mongo-%(creator)s-%(app)s-%(size)d' % args)
-    args['ip'] = ip_address
+    ip_address = gcloud.reserve_ip(self.ip_name(replica))
 
     # create the disk
     gcloud.reserve_disk(
-      name="mongo-app-%(app)s-%(size)d-disk" % args,
+      name=self.disk_name(replica),
       size=disk_size
     )
 
     # create the replication controller
-    rc_template = open('mongo-controller-template.yaml').read() % args
+    self.create_kube_from_template('mongo-controller-template.yaml')
+    # create the service
+    self.create_kube_from_template('mongo-service-template.yaml')
 
-    print (kubectl["create", "-f", "-", "--logtostderr"] << rc_template)()
+  def create_kube_from_template(self, file_name):
+    template = open(file_name).read() % self.args
+    print (kubectl["create", "-f", "-", "--logtostderr"] << template)()
 
-    # create service
-    svc_template = open('mongo-service-template.yaml').read() % args
+  def delete_kube_by_name(self, name):
+    print (kubectl["delete", "name"])()
 
-    print (kubectl["create", "-f", "-", "--logtostderr"] << svc_template)()
+  def delete(self, replica_num):
+    gcloud.delete_ip(self.ip_name(replica_num))
+    gcloud.delete_disk(self.disk_name(replica_num))
+    self.delete_kube_by_name(self.replication_controller_name(replica_num))
+    self.delete_kube_by_name(self.service_name(replica_num))
+
+  def ip_name(self, replica):
+    return 'ip-mongo-%(creator)s-%(app)s-%(size)d' % dict(size=replica, **self.args)
+
+  def disk_name(self, replica):
+    return "mongo-app-%(app)s-%(size)d-disk" % dict(size=replica, **self.args)
+
+  def replication_controller_name(self, replica):
+    return 'mongo-%(app)s-%(replica)d' % dict(replica=replica, **self.args)
+
+  def service_name(self, replica):
+    return 'mongo-%(app)s-%(replica)d' % dict(replica=replica, **self.args)
+
 
 class AppHandler(object):
-
-
   def createApp(self, name, creator):
     db = mongo_connection()
     app = {
