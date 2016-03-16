@@ -61,9 +61,7 @@ class Gcloud:
     result = self.compute.addresses().delete(
       project=GCLOUD_PROJECT,
       region=GCLOUD_REGION,
-      body={
-        "name": name
-      }
+      address=name
     ).execute()
 
 
@@ -109,7 +107,7 @@ class Gcloud:
     ).execute()
 
   def delete_disk(self, name):
-    disk = self.compute.disks().insert(
+    disk = self.compute.disks().delete(
         project=GCLOUD_PROJECT,
         zone=GCLOUD_ZONE,
         disk=name
@@ -156,22 +154,36 @@ class MongoReplica(object):
     )
 
     # create the replication controller
-    self.create_kube_from_template('mongo-controller-template.yaml')
+    self.create_kube_from_template(
+        'mongo-controller-template.yaml',
+        size=replica)
     # create the service
-    self.create_kube_from_template('mongo-service-template.yaml')
+    self.create_kube_from_template(
+      'mongo-service-template.yaml',
+      size=replica,
+      ip=ip_address)
 
-  def create_kube_from_template(self, file_name):
-    template = open(file_name).read() % self.args
+  def create_kube_from_template(self, file_name, **args):
+    template = open(file_name).read() % dict(self.args, **args)
     print (kubectl["create", "-f", "-", "--logtostderr"] << template)()
 
   def delete_kube_by_name(self, name):
-    print (kubectl["delete", "name"])()
+    print (kubectl["delete", name])()
 
-  def delete(self, replica_num):
+  def delete(self):
+    for i in xrange(1, self.num_replicas+1):
+      self.delete_replica(i)
+
+  def delete_replica(self, replica_num):
+    self.delete_kube_by_name('rc/'+self.replication_controller_name(replica_num))
+    self.delete_kube_by_name('svc/'+self.service_name(replica_num))
+
+    # HACK ALERT! It takes a while for gcloud to release the ip/disk resources
+    # so we just wait a bit
+    time.sleep(3)
+
     gcloud.delete_ip(self.ip_name(replica_num))
     gcloud.delete_disk(self.disk_name(replica_num))
-    self.delete_kube_by_name(self.replication_controller_name(replica_num))
-    self.delete_kube_by_name(self.service_name(replica_num))
 
   def ip_name(self, replica):
     return 'ip-mongo-%(creator)s-%(app)s-%(size)d' % dict(size=replica, **self.args)
@@ -187,15 +199,15 @@ class MongoReplica(object):
 
 
 class AppHandler(object):
-  def create_app(self, name, creator):
+  def create_app(self, app, creator):
     db = mongo_connection()
-    app = {
-        'name': name,
+    app_args = {
+        'name': app,
         'creator': creator,
     }
-    mongo = MongoReplica(creator, name)
-    if not db.apps.find_one(app):
-        app.update({
+    mongo = MongoReplica(creator, app)
+    if not db.apps.find_one(app_args):
+        app_args.update({
         'rps': 30,
         'parse_server': '',
         'parse_server_state': UNITIALISED,
@@ -205,15 +217,25 @@ class AppHandler(object):
         'mongo_username': '',
         'mongo_password': ''
         })
-        db.apps.insert_one(app)
+        db.apps.insert_one(app_args)
     else:
         print 'App already exists in db'
 
     mongo.create()
-  
-  def get_app(self, name, creator):
+
+  def delete_app(self, app, creator):
     db = mongo_connection()
-    return db.apps.find_one({'name': name, 'creator': creator})
+    mongo = MongoReplica(creator, app)
+    mongo.delete()
+    db.apps.delete_one({
+      'creator': creator,
+      'app': app
+    })
+    return True
+  
+  def get_app(self, app, creator):
+    db = mongo_connection()
+    return db.apps.find_one({'name': app, 'creator': creator})
 
 
   def get_parse_server_address(self, app):
