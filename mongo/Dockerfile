@@ -49,6 +49,8 @@ VOLUME /data/db /data/configdb
 COPY docker-entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
+COPY mongod.conf /mongod.conf
+
 EXPOSE 27017
-CMD ["mongod"]
+CMD ["mongod -f /mongod.conf"]
 
