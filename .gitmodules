@@ -4,5 +4,3 @@
 [submodule "thrift"]
 	path = thrift
 	url = git@github.com:Waverbase/thrift.git
-	path = parse-server/parse
-	url = https://github.com/ParsePlatform/parse-server.git
