@@ -15,10 +15,12 @@ from thrift.server import TServer
 
 from app import AppService
 
-from plumbum import local, FG
+from plumbum import local, FG, ProcessExecutionError
 
 from oauth2client.client import GoogleCredentials
 from googleapiclient import discovery
+from googleapiclient.errors import HttpError
+
 
 UNITIALISED = 'unitialised'
 INITIALISING = 'initialising'
@@ -58,11 +60,16 @@ class Gcloud:
       time.sleep(1)
 
   def delete_ip(self, name):
-    result = self.compute.addresses().delete(
-      project=GCLOUD_PROJECT,
-      region=GCLOUD_REGION,
-      address=name
-    ).execute()
+    try:
+        result = self.compute.addresses().delete(
+        project=GCLOUD_PROJECT,
+        region=GCLOUD_REGION,
+        address=name
+        ).execute()
+        return True
+    except HttpError, err:
+      print 'Unable to delete IP %s' % err
+      return False
 
 
   def reserve_ip(self, name):
@@ -107,11 +114,19 @@ class Gcloud:
     ).execute()
 
   def delete_disk(self, name):
-    disk = self.compute.disks().delete(
-        project=GCLOUD_PROJECT,
-        zone=GCLOUD_ZONE,
-        disk=name
-    ).execute()
+    try:
+        disk = self.compute.disks().delete(
+            project=GCLOUD_PROJECT,
+            zone=GCLOUD_ZONE,
+            disk=name
+        ).execute()
+    except HttpError, e:
+      if e.resp.status == 404:
+        print 'Disk does not exist. Unable to delete'
+      elif e.resp.status == 400:
+        print 'Disk still in use. Unable to delete'
+      else:
+        raise
     
 
 # Go Globals!
@@ -168,10 +183,14 @@ class MongoReplica(object):
     print (kubectl["create", "-f", "-", "--logtostderr"] << template)()
 
   def delete_kube_by_name(self, name):
-    print (kubectl["delete", name])()
+    try:
+        print (kubectl["delete", name])()
+        return True
+    except ProcessExecutionError:
+      return False
 
   def delete(self):
-    for i in xrange(1, self.num_replicas+1):
+    for i in xrange(1, 4):
       self.delete_replica(i)
 
   def delete_replica(self, replica_num):
@@ -180,7 +199,7 @@ class MongoReplica(object):
 
     # HACK ALERT! It takes a while for gcloud to release the ip/disk resources
     # so we just wait a bit
-    time.sleep(3)
+    # time.sleep(3)
 
     gcloud.delete_ip(self.ip_name(replica_num))
     gcloud.delete_disk(self.disk_name(replica_num))

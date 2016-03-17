@@ -20,15 +20,15 @@ struct App {
 
 service AppService {
   void create_app(
-    1: string name,
+    1: string app,
     2: string creator
   ),
   bool delete_app(
-    1: string name,
+    1: string app,
     2: string creator
    ),
   App get_app(
-    1: string name,
+    1: string app,
     2: string creator
   ),
   Address get_parse_server_address(
