@@ -4,14 +4,15 @@ import client from './client.js';
 const SignUp = React.createClass({
   getInitialState: function() {
     return {
-      username: '',
+      emailAddress: '',
       password: '',
     }
   },
 
 
   _signUp: function() {
-    client.signUp(this.state.username, this.state.password).then(function(user) {
+    client.signUp(this.state.emailAddress, this.state.password)
+    .then(function(user) {
       console.log('result', user);
     }).catch(function(exception) {
       console.log('exception', exception);
@@ -19,8 +20,8 @@ const SignUp = React.createClass({
   },
 
 
-  _handleUsername: function(e) {
-    this.setState({username: e.target.value});
+  _handleEmailAddress: function(e) {
+    this.setState({emailAddress: e.target.value});
   },
 
 
@@ -34,8 +35,8 @@ const SignUp = React.createClass({
       <div className="ui container">
         <h1>Sign Up</h1>
         <form>
-          username:
-          <input value={this.state.username} onChange={this._handleUsername}/>
+          emailAddress:
+          <input value={this.state.emailAddress} onChange={this._handleEmailAddress}/>
           password:
           <input value={this.state.password} onChange={this._handlePassword}/>
         </form>

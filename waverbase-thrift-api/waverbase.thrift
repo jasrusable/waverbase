@@ -1,5 +1,5 @@
 struct User {
-  1: required string username
+  1: required string emailAddress
 }
 
 struct Auth {
@@ -24,13 +24,12 @@ exception SignUpValidationError {
 }
 
 service Waverbase {
-  User signUp(1: string username, 2: string password)
+  User signUp(1: string emailAddress, 2: string password)
     throws (
       1: DuplicateUsernameError duplicateUsernameError,
       2: SignUpValidationError signUpValidationError,
     )
 
-
-  Auth signIn(1: string username, 2: string password)
+  Auth signIn(1: string emailAddress, 2: string password)
     throws (1: NotAuthorisedError e)
 }

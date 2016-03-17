@@ -12,16 +12,19 @@ const URL = 'mongodb://localhost:27017/db';
 const PORT = 9099;
 
 var signUpConstraints = {
-  username: {
+  emailAddress: {
     presence: true,
   },
+  password: {
+    presence: true,
+  }
 }
 
 const waverbaseHandler = {
-  signUp: co.wrap(function* (username, password, result) {
-    winston.info('Sign up attempt', username);
+  signUp: co.wrap(function* (emailAddress, password, result) {
+    winston.info('Sign up attempt, email address:', emailAddress);
     const validationResults = validate({
-      username: username,
+      emailAddress: emailAddress,
       password: password,
     }, signUpConstraints);
     if (validationResults != null) {
@@ -33,25 +36,25 @@ const waverbaseHandler = {
 
     var db = yield MongoClient.connect(URL);
     var collection = yield db.createCollection('users');
-    var count = yield db.collection('users').count({username: username});
+    var count = yield db.collection('users').count({emailAddress: emailAddress});
     if (count > 0) {
       result(new DuplicateUsernameError({
-        errorMessage: `User with username ${username} already exists.`,
+        errorMessage: `User with email address ${emailAddress} already exists.`,
       }));
       return;
     }
-    var user = new User({username: username});
+    var user = new User({emailAddress: emailAddress});
     const passwordHash = yield promisify(passwordUtil(password).hash)();
-    yield collection.insert({username: username, passwordHash: passwordHash});
+    yield collection.insert({emailAddress: emailAddress, passwordHash: passwordHash});
     result(null, user);
   }),
 
 
-  signIn: function(username, password, result) {
-    winston.info('Sign in attempt', username);
-    const user = new User({username: username});
+  signIn: function(emailAddress, password, result) {
+    winston.info('Sign in attempt', emailAddress);
+    const user = new User({emailAddress: emailAddress});
     const auth = new Auth({
-      user: new User({username: username}),
+      user: new User({emailAddress: emailAddress}),
       token: 'hello',
     })
     console.log(auth);
