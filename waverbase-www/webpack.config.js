@@ -10,11 +10,6 @@ module.exports = {
 	},
 	module: {
 		loaders: [
-			{
-				test: /thrift.js$/,
-				loader: 'exports-loader',
-				query: 'Thrift',
-			},
 			// required for react jsx
 			{
 				test: /\.jsx$/,
@@ -42,7 +37,8 @@ module.exports = {
 	},
 	resolve: {
 		alias: {
-			Thrift: path.join(__dirname, './thrift.js'),
+			thrift: path.join(__dirname, './thrift.js'),
+			jquery: path.join(__dirname, './node_modules/jquery'),
 		}
 	},
 	resolveLoader: {
@@ -56,7 +52,6 @@ module.exports = {
 			title: 'Waverbase',
 		}),
 		new webpack.ProvidePlugin({
-			// This is required by many jquery plugins
 			jQuery: 'jquery',
 			$: 'jquery',
 		})

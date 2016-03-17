@@ -39,6 +39,9 @@
  *     var client = new MyThriftSvcClient(protocol);
  *     var result = client.MyMethod();
  */
+
+var jQuery = require('jquery');
+
 var Thrift = {
     /**
      * Thrift JavaScript library version.
@@ -46,7 +49,7 @@ var Thrift = {
      * @const {string} Version
      * @memberof Thrift
      */
-    Version: '0.9.3',
+    Version: '1.0.0-dev',
 
     /**
      * Thrift IDL type string to Id mapping.
@@ -272,6 +275,25 @@ Thrift.TApplicationException.prototype.getCode = function() {
     return this.code;
 };
 
+Thrift.TProtocolExceptionType = {
+    UNKNOWN: 0,
+    INVALID_DATA: 1,
+    NEGATIVE_SIZE: 2,
+    SIZE_LIMIT: 3,
+    BAD_VERSION: 4,
+    NOT_IMPLEMENTED: 5,
+    DEPTH_LIMIT: 6
+};
+
+Thrift.TProtocolException = function TProtocolException(type, message) {
+    Error.call(this);
+    Error.captureStackTrace(this, this.constructor);
+    this.name = this.constructor.name;
+    this.type = type;
+    this.message = message;
+};
+Thrift.inherits(Thrift.TProtocolException, Thrift.TException, 'TProtocolException');
+
 /**
  * Constructor Function for the XHR transport.
  * If you do not specify a url then you must handle XHR operations on
@@ -343,6 +365,16 @@ Thrift.TXHRTransport.prototype = {
                   }
                 };
               }());
+
+            // detect net::ERR_CONNECTION_REFUSED and call the callback.
+            xreq.onerror =
+                (function() {
+                  var clientCallback = callback;
+                  return function() {
+                      clientCallback();
+                  };
+                }());
+
         }
 
         xreq.open('POST', this.url, !!async);
@@ -381,11 +413,6 @@ Thrift.TXHRTransport.prototype = {
      * @throws {string} If the jQuery version is prior to 1.5 or if jQuery is not found.
      */
     jqRequest: function(client, postData, args, recv_method) {
-        if (typeof jQuery === 'undefined' ||
-            typeof jQuery.Deferred === 'undefined') {
-            throw 'Thrift.js requires jQuery 1.5+ to use asynchronous requests';
-        }
-
         var thriftTransport = this;
 
         var jqXHR = jQuery.ajax({
@@ -1006,8 +1033,19 @@ Thrift.Protocol.prototype = {
     },
 
     /** Serializes a string */
-    writeBinary: function(str) {
-        this.writeString(str);
+    writeBinary: function(binary) {
+        var str = '';
+        if (typeof binary == 'string') {
+            str = binary;
+        } else if (binary instanceof Uint8Array) {
+            var arr = binary;
+            for (var i = 0; i < arr.length; ++i) {
+                str += String.fromCharCode(arr[i]);
+            }
+        } else {
+            throw new TypeError('writeBinary only accepts String or Uint8Array.');
+        }
+        this.tstack.push('"' + btoa(str) + '"');
     },
 
     /**
@@ -1309,7 +1347,9 @@ Thrift.Protocol.prototype = {
     /** Returns the an object with a value property set to the
         next value found in the protocol buffer */
     readBinary: function() {
-        return this.readString();
+        var r = this.readI32();
+        r.value = atob(r.value);
+        return r;
     },
 
     /**
@@ -1505,3 +1545,5 @@ copyMap = function(obj, types){
 
 Thrift.copyMap = copyMap;
 Thrift.copyList = copyList;
+
+module.exports = Thrift;

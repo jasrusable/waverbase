@@ -1,4 +1,4 @@
-var Thrift = require('Thrift');
+var Thrift = require('thrift');
 
 module.exports = function(service, path) {
   var transport = new Thrift.TXHRTransport(path);

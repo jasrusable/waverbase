@@ -1,8 +1,6 @@
 require('../semantic/dist/semantic.js');
 require('../semantic/dist/semantic.css');
 require('./styles.css');
-require('script!../thrift2.js');
-require('script!../gen-js/waverbase_types.js');
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -11,14 +9,6 @@ import SignIn from './sign-in.jsx';
 import SignUp from './sign-up.jsx';
 import Landing from './landing.jsx';
 import Navigation from './navigation.jsx';
-import thriftClientFactory from './thrift-client-factory.js';
-
-const service = require('thrift-loader?service=Waverbase!../../waverbase-thrift-api/waverbase.thrift');
-const client = thriftClientFactory(service, 'http://localhost:9099/waverbase');
-
-var promise = client.authenticate('avoid3d', 'baby').always(function(err) {
-  console.log('error', err);
-})
 
 const App = React.createClass({
   render: function() {
