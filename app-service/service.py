@@ -82,11 +82,6 @@ class Gcloud:
       }
     ).execute()
 
-    self.wait_for_region_operation(
-      GCLOUD_PROJECT,
-      GCLOUD_REGION,
-      result['name'])
-
     ip_address = None
 
     while ip_address is None:
@@ -96,9 +91,10 @@ class Gcloud:
         address=name
         ).execute()
 
-        print json.dumps(result, indent=2)
         ip_address = result.get('address')
         time.sleep(1)
+        if not ip_address:
+          print 'Waiting for IP...'
 
     print 'Got IP %s' % ip_address
     return ip_address

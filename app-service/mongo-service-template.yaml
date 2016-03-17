@@ -13,6 +13,6 @@ spec:
     role: mongo
     app: %(app)s
     environment: test
-  #loadBalancerIP: %(ip)s
+  loadBalancerIP: %(ip)s
   type: LoadBalancer
 
