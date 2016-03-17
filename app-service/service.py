@@ -1,7 +1,9 @@
 import sys
 import os
 sys.path.append('gen-py')
+import time
 
+import json
 import logging
 logging.basicConfig()
 import pymongo
@@ -15,11 +17,16 @@ from app import AppService
 
 from plumbum import local, FG
 
+from oauth2client.client import GoogleCredentials
+from googleapiclient import discovery
+
 UNITIALISED = 'unitialised'
 INITIALISING = 'initialising'
 INITIALISED = 'initialised'
 
 GCLOUD_ZONE = 'europe-west1-b'
+GCLOUD_REGION = 'europe-west1'
+GCLOUD_PROJECT = 'api-project-1075799951054'
 START_DISK_SIZE = 50
 
 kubectl = local["kubectl"]
@@ -29,18 +36,106 @@ def mongo_connection():
   # 'mongodb://mongo-1,mongo-2,mongo-3:27017/waverbase'
   return pymongo.MongoClient(os.environ['MONGO_CONNECTION_STRING']).waverbase
 
+class Gcloud:
+  def __init__(self):
+    credentials = GoogleCredentials.get_application_default()
+    self.compute = discovery.build('compute', 'v1', credentials=credentials)
+
+  def wait_for_region_operation(self, project, region, operation):
+    print('Waiting for operation to finish...')
+    while True:
+      result = self.compute.regionOperations().get(
+      region=region,
+      project=project,
+      operation=operation).execute()
+
+      if result['status'] == 'DONE':
+        print("done.")
+      if 'error' in result:
+        raise Exception(result['error'])
+      return result
+
+      time.sleep(1)
+
+  def delete_ip(self, name):
+    result = self.compute.addresses().delete(
+      project=GCLOUD_PROJECT,
+      region=GCLOUD_REGION,
+      body={
+        "name": name
+      }
+    ).execute()
+
+
+  def reserve_ip(self, name):
+    print 'Reserving IP address'
+    result = self.compute.addresses().insert(
+      project=GCLOUD_PROJECT,
+      region=GCLOUD_REGION,
+      body={
+        "name": name
+      }
+    ).execute()
+
+    self.wait_for_region_operation(
+      GCLOUD_PROJECT,
+      GCLOUD_REGION,
+      result['name'])
+
+    ip_address = None
+
+    while ip_address is None:
+        result = self.compute.addresses().get(
+        project=GCLOUD_PROJECT,
+        region=GCLOUD_REGION,
+        address=name
+        ).execute()
+
+        print json.dumps(result, indent=2)
+        ip_address = result.get('address')
+        time.sleep(1)
+
+    print 'Got IP %s' % ip_address
+    return ip_address
+
+  def reserve_disk(self, name, size):
+    disk = self.compute.disks().insert(
+        project=GCLOUD_PROJECT,
+        zone=GCLOUD_ZONE,
+        body={
+          "sizeGb": str(size),
+          "name": name,
+        }
+    ).execute()
+
+  def delete_disk(self, name):
+    disk = self.compute.disks().insert(
+        project=GCLOUD_PROJECT,
+        zone=GCLOUD_ZONE,
+        disk=name
+    ).execute()
+    
+
+# Go Globals!
+gcloud = Gcloud()
 
 class MongoReplica(object):
-  def __init__(self, app):
+  def __init__(self, creator, app):
+    self.creator = creator
     self.app = app
+    self.args = {
+      'creator': self.creator,
+      'app': self.app,
+    }
 
   @property
   def num_replicas(self):
     return int(kubectl["get","rc",
-                       "-l","role=mongo",
-                       "-l","app=%s" % self.app,
-                       "-o","template",
-                       "--template={{ len .items }}"]())
+             "-l","role=mongo",
+             "-l","app=%s" % self.app,
+             "-o","template",
+             "--template={{ len .items }}"]())
+       
 
   def create(self):
     if self.num_replicas == 0:
@@ -49,78 +144,84 @@ class MongoReplica(object):
         self.add(replica=2)
         self.add(replica=3)
     else:
-      print '%d mongo replicas already exist' % self.num_replicas
+        print '%d mongo replicas already exist' % self.num_replicas
 
   def add(self, replica, disk_size=START_DISK_SIZE):
-
-    args = {
-      'app': self.app,
-      'size': replica
-    }
+    ip_address = gcloud.reserve_ip(self.ip_name(replica))
 
     # create the disk
-    gcloud["compute", "disks", "create",
-           "mongo-app-%(app)s-%(size)d-disk" % args,
-           "--size", "%dGB" % disk_size,
-           "--zone", GCLOUD_ZONE] & FG
+    gcloud.reserve_disk(
+      name=self.disk_name(replica),
+      size=disk_size
+    )
 
     # create the replication controller
-    rc_template = open('mongo-controller-template.yaml').read() % args
+    self.create_kube_from_template('mongo-controller-template.yaml')
+    # create the service
+    self.create_kube_from_template('mongo-service-template.yaml')
 
-    print (kubectl["create", "-f", "-", "--logtostderr"] << rc_template)()
-    
-    # create service
-    svc_template = open('mongo-service-template.yaml').read() % args
+  def create_kube_from_template(self, file_name):
+    template = open(file_name).read() % self.args
+    print (kubectl["create", "-f", "-", "--logtostderr"] << template)()
 
-    print (kubectl["create", "-f", "-", "--logtostderr"] << svc_template)()
+  def delete_kube_by_name(self, name):
+    print (kubectl["delete", "name"])()
+
+  def delete(self, replica_num):
+    gcloud.delete_ip(self.ip_name(replica_num))
+    gcloud.delete_disk(self.disk_name(replica_num))
+    self.delete_kube_by_name(self.replication_controller_name(replica_num))
+    self.delete_kube_by_name(self.service_name(replica_num))
+
+  def ip_name(self, replica):
+    return 'ip-mongo-%(creator)s-%(app)s-%(size)d' % dict(size=replica, **self.args)
+
+  def disk_name(self, replica):
+    return "mongo-app-%(app)s-%(size)d-disk" % dict(size=replica, **self.args)
+
+  def replication_controller_name(self, replica):
+    return 'mongo-%(app)s-%(replica)d' % dict(replica=replica, **self.args)
+
+  def service_name(self, replica):
+    return 'mongo-%(app)s-%(replica)d' % dict(replica=replica, **self.args)
+
 
 class AppHandler(object):
-
-
-  def createApp(self, name, creator):
+  def create_app(self, name, creator):
     db = mongo_connection()
     app = {
-      'name': name,
-      'creator': creator,
+        'name': name,
+        'creator': creator,
     }
-    mongo = MongoReplica(name)
+    mongo = MongoReplica(creator, name)
     if not db.apps.find_one(app):
         app.update({
-          'rps': 30,
-          'parse_server': '',
-          'parse_server_state': UNITIALISED,
-          'mongo_server': '',
-          'mongo_server_state': UNITIALISED,
-          'mongo_db': '',
-          'mongo_username': '',
-          'mongo_password': ''
+        'rps': 30,
+        'parse_server': '',
+        'parse_server_state': UNITIALISED,
+        'mongo_server': '',
+        'mongo_server_state': UNITIALISED,
+        'mongo_db': '',
+        'mongo_username': '',
+        'mongo_password': ''
         })
         db.apps.insert_one(app)
     else:
-      print 'App already exists in db'
+        print 'App already exists in db'
 
     mongo.create()
-
   
-  def getApp(self, name, creator):
+  def get_app(self, name, creator):
     db = mongo_connection()
     return db.apps.find_one({'name': name, 'creator': creator})
 
 
-  def initialiseApp(self, app):
-    db = mongo_connection()
-    app = db.apps.find_one({'name': name, 'creator': creator})
-    if app['mongo_server_state'] == UNITIALISED:
-        replication_controller = open('mongo-controller-template.yaml').read()
-        replication_controller.replace('<app>', app.name)
-
-
-  def getParseServerAddress(self, app):
+  def get_parse_server_address(self, app):
     db = mongo_connection()
     app = db.apps.find_one({'name': app['name'], 'creator': app['creator']})
     return app['parse_address']
 
-  def getMongoConnectionString(self, app):
+  def get_mongo_connection_string(self, app):
     db = mongo_connection()
     app = db.apps.find_one({'name': app['name'], 'creator': app['creator']})
     return app['mongo_connection_string']
