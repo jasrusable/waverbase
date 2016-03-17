@@ -103,7 +103,7 @@ const mongo_handler = {
 
       db.close();
     }).catch(function(err){
-      
+      console.log(err.stack);
     });
   },
 
@@ -120,7 +120,7 @@ const mongo_handler = {
 
       db.close();
     }).catch(function(err){
-
+      console.log(err.stack);
     });
   }
 };
