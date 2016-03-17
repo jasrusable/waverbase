@@ -38,6 +38,7 @@ module.exports = {
 	resolve: {
 		alias: {
 			thrift: path.join(__dirname, './thrift.js'),
+			// Hack because webpack somehow can't resolve jquery.
 			jquery: path.join(__dirname, './node_modules/jquery'),
 		}
 	},
