@@ -88,6 +88,40 @@ const mongo_handler = {
     }).catch(function(err){
       console.log(err.stack);
     });
+  },
+
+  updateDocuments: function(instanceUrl, database, collection, selector, doc) {
+    instanceUrl = 'mongodb://localhost:27017';
+    database = 'waverbase';
+    collection = 'test_db';
+
+    co(function*(){
+      const db = yield MongoClient.connect(instanceUrl + '/' + database);
+      const col = db.collection(collection);
+
+      yield col.update(JSON.parse(selector), JSON.parse(doc));
+
+      db.close();
+    }).catch(function(err){
+      
+    });
+  },
+
+  insertDocument: function(instanceUrl, database, collection, doc){
+    instanceUrl = 'mongodb://localhost:27017';
+    database = 'waverbase';
+    collection = 'test_db';
+
+    co(function*(){
+      const db = yield MongoClient.connect(instanceUrl + '/' + database);
+      const col = db.collection(collection);
+
+      yield col.insert(JSON.parse(doc));
+
+      db.close();
+    }).catch(function(err){
+
+    });
   }
 };
 
