@@ -19,9 +19,19 @@
         var client = new mongo_svcClient(protocol);
         var nameElement = document.getElementById("name_in");
         var outputElement = document.getElementById("output");
+        
+        var options = new FindOptions();
+        options.skip = 0;
+        options.limit = 10;
+        options.query = new Query();
+        options.query.filter = "{\"itemName\":\"coke\"}";
+        options.query.fields = "{\"price\":1, \"_id\"\:0}";
+
+        var options2 = new FindOptions();
+
         document.getElementById("get_msg")
           .addEventListener("click", function(){
-            client.listDocuments(nameElement.value, 'fluff', 'fluff', function(result) {
+            client.findDocuments(nameElement.value, 'fluff','fluff', options, function(result) {
               console.log(result);
               outputElement.innerHTML = result;
             });

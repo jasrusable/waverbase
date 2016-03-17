@@ -14,15 +14,17 @@ const mongo_handler = {
       const db = yield MongoClient.connect(instanceUrl);
       const dbs = yield db.admin().listDatabases();
 
-      result(null, dbs);
+      result(null, JSON.stringify(dbs));
       db.close();
+
+    }).catch(function(err) {
+      console.log(err.stack);
     });
   },
 
   listCollections: function(instanceUrl, database, result) {
     instanceUrl = 'mongodb://localhost:27017';
     database = 'waverbase';
-
 
     co(function*() {
       const db = yield MongoClient.connect(instanceUrl + '/' + database);
@@ -33,14 +35,15 @@ const mongo_handler = {
             return collection['s']['name'];
         });
 
-        result(null, collectionNames);
+        result(null, JSON.stringify(collectionNames));
       }
 
       db.close();
+    }).catch(function(err){
+      console.log(err.stack);
     });
   },
 
-  // TODO: change this to a find with limit
   listDocuments: function(instanceUrl, database, collection, result) {
     instanceUrl = 'mongodb://localhost:27017';
     database = 'waverbase';
@@ -49,11 +52,41 @@ const mongo_handler = {
     co(function*(){
       const db = yield MongoClient.connect(instanceUrl + '/' + database);
       const col = db.collection(collection);
-      const docs = yield col.find().toArray();
+      const docs = yield col.find().skip(0).limit(10).toArray();
 
-      result(null, docs);
+      result(null, JSON.stringify(docs));
 
       db.close();
+    }).catch(function(err){
+      console.log(err.stack);
+    });
+  },
+
+  findDocuments: function(instanceUrl, database, collection, options, result) {
+    instanceUrl = 'mongodb://localhost:27017';
+    database = 'waverbase';
+    collection = 'test_db';
+
+    co(function*(){
+      const db = yield MongoClient.connect(instanceUrl + '/' + database);
+      const col = db.collection(collection);
+
+      const filter = options.query ? JSON.parse(options.query.filter) : {};
+      const fields = options.query ? JSON.parse(options.query.fields) : {};
+      const skip = options.skip ? options.skip : 0;
+
+      var p = col.find(filter, fields).skip(options.skip);
+      if (options.limit) {
+        p.limit(options.limit); 
+      }
+
+      const docs = yield p.toArray();
+
+      result(null, JSON.stringify(docs));
+
+      db.close();
+    }).catch(function(err){
+      console.log(err.stack);
     });
   }
 };
