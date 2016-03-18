@@ -53,4 +53,3 @@ COPY mongod.conf /mongod.conf
 
 EXPOSE 27017
 CMD ["mongod -f /mongod.conf"]
-
