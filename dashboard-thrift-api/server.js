@@ -75,7 +75,7 @@ const mongo_handler = {
       const fields = options.query ? JSON.parse(options.query.fields) : {};
       const skip = options.skip ? options.skip : 0;
 
-      var p = col.find(filter, fields).skip(options.skip);
+      var p = col.find(filter, fields).skip(skip);
       if (options.limit) {
         p.limit(options.limit); 
       }
