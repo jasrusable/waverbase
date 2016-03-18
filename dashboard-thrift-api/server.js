@@ -44,24 +44,6 @@ const mongo_handler = {
     });
   },
 
-  listDocuments: function(instanceUrl, database, collection, result) {
-    instanceUrl = 'mongodb://localhost:27017';
-    database = 'waverbase';
-    collection = 'test_db';
-
-    co(function*(){
-      const db = yield MongoClient.connect(instanceUrl + '/' + database);
-      const col = db.collection(collection);
-      const docs = yield col.find().skip(0).limit(10).toArray();
-
-      result(null, JSON.stringify(docs));
-
-      db.close();
-    }).catch(function(err){
-      console.log(err.stack);
-    });
-  },
-
   findDocuments: function(instanceUrl, database, collection, options, result) {
     instanceUrl = 'mongodb://localhost:27017';
     database = 'waverbase';
