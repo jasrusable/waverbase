@@ -15,7 +15,7 @@ module.exports = function(content, sourceMap) {
 	var query = loaderUtils.parseQuery(this.query);
   this.cacheable();
   var callback = this.async();
-  var command = '../thrift/compiler/cpp/thrift --recurse --gen js:jquery,es6 ' + this.resourcePath;
+  var command = 'thrift --recurse --gen js:jquery,es6 ' + this.resourcePath;
 
   exec(command, function(error, stdout, stderr) {
     console.log(stdout);
