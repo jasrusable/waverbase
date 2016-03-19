@@ -8,11 +8,11 @@ services:
       - ../waverbase-www/src:/home/waverbase/waverbase/waverbase-www/src
     ports:
       - "8080:8080"
-  # waverbase-thrift-api:
-  #   build:
-  #     context: ../
-  #     dockerfile: ./waverbase-thrift-api/ops/Dockerfile
-  #   volumes:
-  #     - ../waverbase-thrift-api/src:/home/waverbase/waverbase/waverbase-thrift-api/src
-  #   ports:
-  #     - "9090:9090"
+  waverbase-thrift-api:
+    build:
+      context: ../
+      dockerfile: ./waverbase-thrift-api/ops/Dockerfile
+    volumes:
+      - ../waverbase-thrift-api/src:/home/waverbase/waverbase/waverbase-thrift-api/src
+    ports:
+      - "9099:9099"
