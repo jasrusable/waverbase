@@ -21,17 +21,22 @@
         var outputElement = document.getElementById("output");
         
         var options = new FindOptions();
-        // options.skip = 3;
-        // options.limit = 2;
-        // options.query = new Query();
-        // options.query.filter = "{\"itemName\":\"coke\"}";
-        // options.query.fields = "{\"price\":1, \"_id\"\:0}";
+        options.skip = 3;
+        options.limit = 2;
+        options.query = new Query();
+        options.query.filter = "{\"itemName\":\"coke\"}";
+        options.query.fields = "{\"price\":1, \"_id\"\:0}";
 
-        var options2 = new FindOptions();
+        var update = {$set:{
+          itemNamez: "Not cocaine"
+        }};
+        update = JSON.stringify(update);
+        
+        var selector = "{\"itemName\":\"Cocaine\"}";
 
         document.getElementById("get_msg")
           .addEventListener("click", function(){
-            client.findDocuments(nameElement.value, 'fluff','fluff', options, function(result) {
+            client.updateDocuments(nameElement.value, 'fluff','fluff', selector , update, function(result) {
               console.log(result);
               outputElement.innerHTML = result;
             });
