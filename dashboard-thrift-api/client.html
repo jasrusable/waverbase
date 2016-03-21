@@ -24,19 +24,21 @@
         options.skip = 3;
         options.limit = 2;
         options.query = new Query();
-        options.query.filter = "{\"itemName\":\"coke\"}";
+        options.query.filter = JSON.stringify({});
         options.query.fields = "{\"price\":1, \"_id\"\:0}";
 
-        var update = {$set:{
-          itemNamez: "Not cocaine"
-        }};
+        var update = {$unset:{itemNamez:""}};
+        // {$set:{
+        //   itemNamez: "Not cocaine"
+        // }};
         update = JSON.stringify(update);
-        
-        var selector = "{\"itemName\":\"Cocaine\"}";
+
+        var selector = {itemName:"Cocaine"};
+        selector = JSON.stringify(selector);
 
         document.getElementById("get_msg")
           .addEventListener("click", function(){
-            client.updateDocuments(nameElement.value, 'fluff','fluff', selector , update, function(result) {
+            client.deleteDocuments(nameElement.value, 'fluff','fluff', selector, function(result) {
               console.log(result);
               outputElement.innerHTML = result;
             });
