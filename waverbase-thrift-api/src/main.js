@@ -23,17 +23,18 @@ var signUpConstraints = {
 
 function wrap(f) {
   const that = this;
-  function wrapped(...args) {
-    return f.apply(that, args);
-  }
 
   return function(...args) {
     const resultCallback = args.pop();
+
+    function wrapped() {
+      return f.apply(that, args);
+    }
+
     co(wrapped).then(function(result) {
-       console.log('sucess stage b', result);
        resultCallback(null, result);
     }).catch(function(error) {
-      console.log('error stage b', error.stack);
+      console.log(error.stack);
       resultCallback(error);
     });
   }

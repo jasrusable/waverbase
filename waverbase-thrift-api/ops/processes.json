@@ -1,0 +1,12 @@
+[{
+  "script": "webpack",
+  "args": ["--colors", "--progress", "--watch"]
+}, {
+  "script": "./build/backend.js",
+  "args": ["--colors", "--progress", "--watch"],
+  "watch": "./build/backend.js"
+}, {
+  "script": "thrift",
+  "args": ["--gen", "js:node", "./waverbase.thrift"],
+  "watch": "./waverbase.thrift"
+}]

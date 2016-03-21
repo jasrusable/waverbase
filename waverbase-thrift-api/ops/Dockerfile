@@ -58,6 +58,5 @@ RUN chown -R waverbase:waverbase /home/waverbase/waverbase
 EXPOSE 9090
 
 WORKDIR /home/waverbase/waverbase/waverbase-thrift-api
-CMD pm2 start webpack -- --watch --colors --progress && \
-    pm2 start build/backend.js --watch && \
+CMD pm2 start ops/processes.json && \
     pm2 logs
