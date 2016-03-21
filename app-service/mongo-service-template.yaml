@@ -3,13 +3,18 @@ kind: Service
 metadata:
   labels:
     name: mongo-%(app)s-%(size)d
+    role: mongo
+    app: %(app)s
   name: mongo-%(app)s-%(size)d
 spec:
   ports:
     - port: 27017
       targetPort: 27017
   selector:
-    name: mongo-%(app)s-%(size)d
-  externalIPs:
-    - %(ip)s
+    name: mongo-node-%(app)s-%(size)d
+    role: mongo
+    app: %(app)s
+    environment: test
+  loadBalancerIP: %(ip)s
+  type: LoadBalancer
 

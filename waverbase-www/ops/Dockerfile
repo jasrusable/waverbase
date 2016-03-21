@@ -16,6 +16,9 @@ RUN apt-get install --yes \
   python-dev \
   curl \
   ssh \
+  pkg-config \
+  flex \
+  bison \
   libboost-all-dev \
   libssl-dev
 
@@ -28,9 +31,9 @@ COPY ./thrift /home/waverbase/waverbase/thrift
 RUN chown -R waverbase:waverbase /home/waverbase/waverbase/thrift
 
 WORKDIR /home/waverbase/waverbase/thrift
+RUN ./bootstrap.sh
 RUN ./configure --with-cpp --with-nodejs
 RUN make -j `nproc` install
-
 COPY ./thrift-loader/package.json /home/waverbase/waverbase/thrift-loader/package.json
 RUN chown -R waverbase:waverbase /home/waverbase/waverbase/thrift-loader
 WORKDIR /home/waverbase/waverbase/thrift-loader
@@ -48,7 +51,6 @@ USER root
 COPY ./ /home/waverbase/waverbase
 RUN chown -R waverbase:waverbase /home/waverbase/waverbase
 USER waverbase
-WORKDIR /home/waverbase/waverbase/
 
 # Development or production http server.
 EXPOSE 8080

@@ -11,6 +11,7 @@ import { User, DuplicateUsernameError, SignUpValidationError} from '../gen-nodej
 const URL = 'mongodb://localhost:27017/db';
 const PORT = 9099;
 
+
 var signUpConstraints = {
   emailAddress: {
     presence: true,
@@ -20,33 +21,49 @@ var signUpConstraints = {
   }
 }
 
+function wrap(f) {
+  const that = this;
+  function wrapped(...args) {
+    return f.apply(that, args);
+  }
+
+  return function(...args) {
+    const resultCallback = args.pop();
+    co(wrapped).then(function(result) {
+       console.log('sucess stage b', result);
+       resultCallback(null, result);
+    }).catch(function(error) {
+      console.log('error stage b', error.stack);
+      resultCallback(error);
+    });
+  }
+}
+
+function callbackBasedFunction(a, b, callback) {
+  callback(null, a + b);
+};
+
 const waverbaseHandler = {
-  signUp: co.wrap(function* (emailAddress, password, result) {
-    winston.info('Sign up attempt, email address:', emailAddress);
-    const validationResults = validate({
-      emailAddress: emailAddress,
-      password: password,
-    }, signUpConstraints);
-    if (validationResults != null) {
-      result(new SignUpValidationError({
-        errorMessage: JSON.stringify(validationResults),
-      }));
-      return;
-    }
+  signUp: wrap(function* (emailAddress, password) {
+    return new User({emailAddress: 'hello'});
+
+    throw new DuplicateUsernameError({
+      errorMessage: `User with email address ${emailAddress} already exists.`,
+    });
 
     var db = yield MongoClient.connect(URL);
     var collection = yield db.createCollection('users');
     var count = yield db.collection('users').count({emailAddress: emailAddress});
+
     if (count > 0) {
-      result(new DuplicateUsernameError({
+      throw new DuplicateUsernameError({
         errorMessage: `User with email address ${emailAddress} already exists.`,
-      }));
-      return;
+      });
     }
     var user = new User({emailAddress: emailAddress});
     const passwordHash = yield promisify(passwordUtil(password).hash)();
     yield collection.insert({emailAddress: emailAddress, passwordHash: passwordHash});
-    result(null, user);
+    return user;
   }),
 
 
