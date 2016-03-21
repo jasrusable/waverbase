@@ -72,7 +72,7 @@ const mongo_handler = {
     });
   },
 
-  updateDocuments: function(instanceUrl, database, collection, selector, doc) {
+  updateDocuments: function(instanceUrl, database, collection, selector, update) {
     instanceUrl = 'mongodb://localhost:27017';
     database = 'waverbase';
     collection = 'test_db';
@@ -81,7 +81,7 @@ const mongo_handler = {
       const db = yield MongoClient.connect(instanceUrl + '/' + database);
       const col = db.collection(collection);
 
-      yield col.update(JSON.parse(selector), JSON.parse(doc));
+      yield col.updateMany(JSON.parse(selector), JSON.parse(update));
 
       db.close();
     }).catch(function(err){
