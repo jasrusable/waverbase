@@ -20,4 +20,5 @@ service mongo_svc {
   string findDocuments(1:string instanceUrl, 2:string database, 3:string collection, 4:FindOptions options),
   void updateDocuments(1:string instanceUrl, 2:string database, 3:string collection, 4:string selector, 5:string doc),
   void insertDocument(1:string instanceUrl, 2:string database, 3:string collection, 4:string doc)
+  void deleteDocuments(1:string instanceUrl, 2:string database, 3:string collection, 4:string filter);
 }

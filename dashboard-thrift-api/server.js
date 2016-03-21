@@ -104,6 +104,23 @@ const mongo_handler = {
     }).catch(function(err){
       console.log(err.stack);
     });
+  },
+
+  deleteDocuments: function(instanceUrl, database, collection, filter) {
+    instanceUrl = 'mongodb://localhost:27017';
+    database = 'waverbase';
+    collection = 'test_db';
+
+    co(function*(){
+      const db = yield MongoClient.connect(instanceUrl + '/' + database);
+      const col = db.collection(collection);
+
+      col.deleteMany(JSON.parse(filter));
+
+      db.close();
+    }).catch(function(err){
+      console.log(err.stack);
+    });
   }
 };
 
