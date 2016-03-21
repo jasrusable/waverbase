@@ -9,7 +9,6 @@ const SignUp = React.createClass({
     }
   },
 
-
   _signUp: function() {
     client.signUp(this.state.emailAddress, this.state.password)
     .then(function(user) {

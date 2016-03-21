@@ -48,16 +48,12 @@ USER waverbase
 RUN npm install
 USER root
 
-RUN pip install when-changed
-
 COPY ./ /home/waverbase/waverbase
 RUN chown -R waverbase:waverbase /home/waverbase/waverbase
 USER waverbase
-WORKDIR /home/waverbase/waverbase/
 
 # Development or production http server.
 EXPOSE 8080
 
 WORKDIR /home/waverbase/waverbase/waverbase-www
 CMD /usr/bin/webpack-dev-server --progress --colors --host 0.0.0.0 --port 8080 # bust-cache
-CMD /usr/local/bin/when-changed -rs src -c webpack && node build/backend.js

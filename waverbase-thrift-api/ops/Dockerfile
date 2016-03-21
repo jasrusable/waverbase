@@ -49,13 +49,15 @@ USER waverbase
 RUN npm install
 USER root
 
+RUN npm install -g pm2
+
 COPY ./ /home/waverbase/waverbase
 RUN chown -R waverbase:waverbase /home/waverbase/waverbase
-USER waverbase
-WORKDIR /home/waverbase/waverbase/
 
 # Development or production thrift api server.
 EXPOSE 9090
 
 WORKDIR /home/waverbase/waverbase/waverbase-thrift-api
-CMD webpack && node build/backend.js
+CMD pm2 start webpack -- --watch --colors --progress && \
+    pm2 start build/backend.js --watch && \
+    pm2 logs
