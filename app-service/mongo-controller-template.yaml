@@ -40,10 +40,12 @@ spec:
             - name: mongo-persistent-storage
               mountPath: /data/db
         - name: mongo-sidecar
-          image: leportlabs/mongo-k8s-sidecar:latest
+          image: eu.gcr.io/api-project-1075799951054/mongo-k8s-sidecar:latest
           env:
             - name: MONGO_SIDECAR_POD_LABELS
               value: "role=mongo,environment=test,app=%(app)s"
+            - name: MONGO_HOSTNAME
+              value: "%(ip)s"
       volumes:
         - name: mongo-persistent-storage
           gcePersistentDisk:
