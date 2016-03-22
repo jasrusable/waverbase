@@ -1,0 +1,26 @@
+kind: ReplicationController
+apiVersion: v1
+metadata:
+  name: mongo-waver
+spec:
+  replicas: 1
+  selector:
+    name: mongo-waver
+  template:
+    spec:
+      containers:
+        - name: mongo-waver
+          image: eu.gcr.io/api-project-1075799951054/mongo:latest
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongo-persistent-storage
+              mountPath: /data/db
+      volumes:
+        - name: mongo-persistent-storage
+          gcePersistentDisk:
+            pdName: mongo-waver
+            fsType: ext4
+    metadata:
+      labels:
+        name: mongo-waver
