@@ -3,6 +3,8 @@ var MongoServer = require('mongodb').Server;
 var async = require('async');
 var crypto = require('crypto');
 
+var AppService = require('./app_service');
+
 var localhost = '127.0.0.1'; //Can access mongo as localhost from a sidecar
 
 var getDb = function(host, done) {
@@ -53,21 +55,26 @@ var replSetGetStatus = function(db, done) {
     });
 };
 
-var initReplSet = function(db, hostIpAndPort, done) {
-    console.log('initReplSet', hostIpAndPort);
-
+var createAdminUser = function(db) {
     var password = crypto.randomBytes(16).toString('base64');
 
-    db.admin().addUser(
+    return db.admin().addUser(
 	'waverbase',
 	password,
 	{
             roles: [{role:"root", db:"admin"}]
 	}
     ).then(function(result) {
-	console.log('Added user');
+	console.log(result);
 	return db.admin().authenticate('waverbase', password);
-    }).then(function(result) {
+    });
+}
+
+var initReplSet = function(db, hostIpAndPort, done) {
+    console.log('initReplSet', hostIpAndPort);
+
+    createAdminUser(db)
+    .then(function(result) {
 	console.log('authenticated as user');
 	return db.admin().command({ replSetInitiate: {
 	    _id: 'parse',
