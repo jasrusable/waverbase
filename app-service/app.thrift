@@ -18,6 +18,8 @@ struct App {
 }
 
 
+// THIS IS NOT A PUBLIC FACING INTERFACE AND SHOULD BE FIREWALLED
+// OFF FROM THE WORLD
 service AppService {
   void create_app(
     1: string app,
@@ -32,10 +34,20 @@ service AppService {
     2: string creator
   ),
   Address get_parse_server_address(
-    1: App app
+    1: string app,
+    2: string creator,
   ),
-  list<Address> get_mongo_connection_string(
-    1: App app
+  list<string> get_mongo_connection_string(
+    1: string app,
+    2: string creator,
   ),
+  bool set_mongo_password(
+    1: string app,
+    2: string creator,
+    3: string password),
+  void add_mongo_server(
+    1: string app,
+    2: string creator,
+    3: string mongo_connection_string),
   string ping()
 }

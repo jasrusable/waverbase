@@ -57,18 +57,57 @@ class AppHandler(object):
 
   def get_app(self, app, creator):
     db = mongo_connection()
-    return db.apps.find_one({'name': app, 'creator': creator})
+    print db.apps.find_one({
+        'name': app,
+        'creator': creator
+    })
 
 
   def get_parse_server_address(self, app):
     db = mongo_connection()
-    app = db.apps.find_one({'name': app['name'], 'creator': app['creator']})
+    app = db.apps.find_one({
+        'name': app['name'],
+        'creator': app['creator']
+    })
     return app['parse_address']
 
-  def get_mongo_connection_string(self, app):
+  def get_mongo_connection_string(self, app, creator):
     db = mongo_connection()
-    app = db.apps.find_one({'name': app['name'], 'creator': app['creator']})
+    app = db.apps.find_one({
+        'name': app,
+        'creator': creator
+    })
     return app['mongo_connection_string']
+
+  def set_mongo_password(self, app, creator, password):
+    db = mongo_connection()
+
+    # we do not set the admin password multiple times. It should fail the second time
+    app = db.apps.find_one({
+        'name': app,
+        'creator': creator
+    })
+    if app.get('mongo_password'):
+        return False
+
+    return db.apps.update_one(
+        {'name': app['name'], 'creator': app['creator']},
+        {"$set": {"mongo_password": password}}
+    ).matched_count == 1
+
+  def add_mongo_server(self, app, creator, mongo_connection_string):
+    db = mongo_connection()
+    db.apps.update_one(
+        {'name': app, 'creator': creator},
+        {"$addToSet": {"mongo_databases": mongo_connection_string}})
+
+  def get_mongo_connection_string(self, app, creator):
+    db = mongo_connection()
+    app = db.apps.find_one({'name': app, 'creator': creator})
+    print app['mongo_databases']
+    return app['mongo_databases']
+      
+    
 
   def ping(self):
     return 'pong'
