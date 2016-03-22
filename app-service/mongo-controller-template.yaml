@@ -46,6 +46,10 @@ spec:
               value: "role=mongo,environment=test,app=%(app)s"
             - name: MONGO_HOSTNAME
               value: "%(ip)s"
+            - name: APP_NAME
+              value: "%(app)s"
+            - name: CREATOR_NAME
+              value: "%(creator)s"
       volumes:
         - name: mongo-persistent-storage
           gcePersistentDisk:
@@ -56,5 +60,6 @@ spec:
         name: mongo-node-%(app)s-%(size)d
         role: mongo
         app: %(app)s
+        creator: %(creator)s
         external_ip: %(ip)s
         environment: test

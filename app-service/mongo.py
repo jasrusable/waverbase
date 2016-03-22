@@ -9,7 +9,9 @@ kubectl = local["kubectl"]
 
 
 def mongo_connection():
-  return pymongo.MongoClient(os.environ['MONGO_CONNECTION_STRING']).waverbase
+  return pymongo.MongoClient('mongodb://%s:%s' % (
+      os.environ['MONGO_WAVER_SERVICE_HOST'],
+      os.environ['MONGO_WAVER_SERVICE_PORT'])).waverbase
 
 
 def interleave_wait(*args):
