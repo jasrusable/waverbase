@@ -1,5 +1,5 @@
 import sys
-sys.path.append('gen-py')
+sys.path.append('../gen-py')
 
 import logging
 logging.basicConfig()
@@ -106,8 +106,6 @@ class AppHandler(object):
     app = db.apps.find_one({'name': app, 'creator': creator})
     print app['mongo_databases']
     return app['mongo_databases']
-      
-    
 
   def ping(self):
     return 'pong'
@@ -121,9 +119,11 @@ if __name__ == '__main__':
   # mongo.init_security(db)
   processor = AppService.Processor(handler)
 
-  transport = TSocket.TServerSocket(port=9090)
+  port=9090
+  transport = TSocket.TServerSocket()
   tfactory = TTransport.TBufferedTransportFactory()
-  pfactory = TBinaryProtocol.TBinaryProtocolFactory()
+  pfactory = TBinaryProtocol.TBinaryProtocolFactory(port=port)
 
+  print 'Listening on %d' % port
   server = TServer.TSimpleServer(processor, transport, tfactory, pfactory)
   server.serve()
