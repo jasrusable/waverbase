@@ -56,4 +56,5 @@ spec:
         name: mongo-node-%(app)s-%(size)d
         role: mongo
         app: %(app)s
+        external_ip: %(ip)s
         environment: test
