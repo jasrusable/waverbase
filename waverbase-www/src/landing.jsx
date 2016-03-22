@@ -3,10 +3,8 @@ import React from 'react';
 const Landing = React.createClass({
   render: function(): React.Element {
     return (
-      <div>
-        <div className="ui container">
-          landing
-          </div>
+      <div className="ui container">
+        <h1>Dashboard</h1>
       </div>
     );
   },

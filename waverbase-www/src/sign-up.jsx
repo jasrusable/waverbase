@@ -1,18 +1,28 @@
 import React from 'react';
-import client from './client.js';
+import client from './client.jsx';
+import {Link, } from 'react-router';
 
 const SignUp = React.createClass({
+  contextTypes: {
+    router: React.PropTypes.object
+  },
+
   getInitialState: function() {
     return {
       emailAddress: '',
       password: '',
+      isTACChecked: false,
     }
   },
 
+
   _signUp: function() {
+    const router = this.context.router;
     client.signUp(this.state.emailAddress, this.state.password)
-    .then(function(user) {
-      console.log('result', user);
+    .then(function(auth) {
+      console.log(`Sucessfully signed up, got auth ${JSON.stringify(auth)}`);
+      localStorage.setItem('auth_token', auth.token);
+      router.push('/dashboard');
     }).catch(function(exception) {
       console.log('exception', exception);
     });
@@ -29,17 +39,33 @@ const SignUp = React.createClass({
   },
 
 
+  _toggleIsTACChecked: function() {
+    this.setState({isTACChecked: !this.state.isTACChecked});
+  },
+
+
   render: function(): React.Element {
     return (
       <div className="ui container">
         <h1>Sign Up</h1>
-        <form>
-          emailAddress:
-          <input value={this.state.emailAddress} onChange={this._handleEmailAddress}/>
-          password:
-          <input value={this.state.password} onChange={this._handlePassword}/>
+        <form className="ui form">
+          <div className="field">
+            <label>Email address</label>
+            <input value={this.state.emailAddress} onChange={this._handleEmailAddress} />
+          </div>
+          <div className="field">
+            <label>Password</label>
+            <input value={this.state.password} type="password" onChange={this._handlePassword} />
+          </div>
+          <div className="field">
+            <div className="ui checkbox" onClick={this._toggleIsTACChecked}>
+              <input type="checkbox" tabIndex="0" className="hidden" checked={this.state.isTACChecked}/>
+              <label>I agree to the Terms and Conditions</label>
+            </div>
+          </div>
+          <button className="ui button" type="submit" onClick={this._signUp}>Sign Up</button>
         </form>
-        <button onClick={this._signUp} >sign up</button>
+        Already have an account? <Link to='/sign-in'>Sign in</Link>
       </div>
     );
   },

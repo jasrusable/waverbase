@@ -6,8 +6,11 @@ services:
       dockerfile: ./waverbase-www/ops/Dockerfile
     volumes:
       - ../waverbase-www/src:/home/waverbase/waverbase/waverbase-www/src
+      - ../waverbase-thrift-api/waverbase.thrift:/home/waverbase/waverbase/waverbase-thrift-api/waverbase.thrift
     ports:
       - "8080:8080"
+    depends_on:
+      - waverbase-thrift-api
   waverbase-thrift-api:
     build:
       context: ../
@@ -17,3 +20,7 @@ services:
       - ../waverbase-thrift-api/waverbase.thrift:/home/waverbase/waverbase/waverbase-thrift-api/waverbase.thrift
     ports:
       - "9099:9099"
+    depends_on:
+      - mongo-dev
+  mongo-dev:
+    image: mongo
