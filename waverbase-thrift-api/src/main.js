@@ -115,7 +115,7 @@ const waverbaseHandler = {
     const token = hat();
     const link = 'http://localhost:8080/webpack-dev-server/#/choose-new-password';
 
-    winston.log(`Sent password reset email with link ${link} and token ${token}`);
+    winston.info(`Sent password reset email with link ${link} and token ${token}`);
 
     return null;
   }),
