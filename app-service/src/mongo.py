@@ -68,8 +68,8 @@ class MongoReplica(object):
         self.add(3))
 
 
-    print 'Connecting...'
-    db = self.connect()
+    print 'Created'
+    #db = self.connect()
 
     #print 'Securing...'
     #self.init_security(db)
