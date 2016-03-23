@@ -32,12 +32,52 @@ const App = React.createClass({
 })
 
 
+const Row = React.createClass({
+  render: function() {
+    const row = this.props.columns.map(function(col) {
+      return <td key={col}>{col}</td>;
+    });
+
+    return <tr>{row}</tr>;
+  },
+})
+
+
+const Body = React.createClass({
+  render: function() {
+    const rows = this.props.data.map(function(row) {
+      return <Row key={row} columns={row} />
+    });
+
+    return <tbody>{rows}</tbody>;
+  }
+})
+
+
+const Header = React.createClass({
+  render: function() {
+    const cols = this.props.columns.map(function(col) {
+      return <th key={col}>{col}</th>;
+    });
+
+    return (
+      <thead>
+        <tr>{cols}</tr>
+      </thead>
+    );
+  }
+})
+
+
 const Class = React.createClass({
   render: function() {
     return (
-      
+      <table className="ui celled table">
+        <Header columns={['Name', 'Status', 'Notes']}/>
+        <Body data={[[1,2,3], [4,5,6], [7,8,9]]} />
+      </table>
     );
-  }
+  },
 })
 
 
@@ -86,9 +126,9 @@ const UsersClass = React.createClass({
 const RolesClass = React.createClass({
   render: function() {
     return (
-      <h1>Roles</h1>
+      <Class />
     );
-  }
+  },
 })
 
 
@@ -100,7 +140,7 @@ const Browser = React.createClass({
         {this.props.children}
       </div>
     );
-  }
+  },
 })
 
 
