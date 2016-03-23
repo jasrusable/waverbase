@@ -48,10 +48,6 @@ var podContainsLabels = function podContainsLabels(pod, labels) {
   return true;
 };
 
-var getAppName() {
-    prcess.
-}
-
 module.exports = {
     getMongoPods: getMongoPods
 };
