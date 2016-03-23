@@ -3,6 +3,7 @@ from googleapiclient import discovery
 from googleapiclient.errors import HttpError
 
 import time
+import logging
 
 GCLOUD_ZONE = 'europe-west1-b'
 GCLOUD_REGION = 'europe-west1'
@@ -15,7 +16,7 @@ class Gcloud:
     self.compute = discovery.build('compute', 'v1', credentials=credentials)
 
   def wait_for_region_operation(self, project, region, operation):
-    print('Waiting for operation to finish...')
+    logging.debug('Waiting for operation to finish...')
     while True:
       result = self.compute.regionOperations().get(
       region=region,
@@ -23,7 +24,7 @@ class Gcloud:
       operation=operation).execute()
 
       if result['status'] == 'DONE':
-        print("done.")
+        logging.debug("done.")
       if 'error' in result:
         raise Exception(result['error'])
       return result
@@ -39,19 +40,25 @@ class Gcloud:
         ).execute()
         return True
     except HttpError, err:
-      print 'Unable to delete IP %s' % err
+      logging.error('Unable to delete IP %s' % err)
       return False
 
 
   def reserve_ip(self, name):
-    print 'Reserving IP address'
-    result = self.compute.addresses().insert(
-      project=GCLOUD_PROJECT,
-      region=GCLOUD_REGION,
-      body={
-        "name": name
-      }
-    ).execute()
+    logging.info('Reserving IP address')
+    try:
+        result = self.compute.addresses().insert(
+        project=GCLOUD_PROJECT,
+        region=GCLOUD_REGION,
+        body={
+            "name": name
+        }
+        ).execute()
+    except HttpError, e:
+      if e.resp.status == 409:
+        logging.debug('IP address %s already exists. Reusing' % name)
+      else:
+        raise
 
     ip_address = None
 
@@ -65,9 +72,9 @@ class Gcloud:
         ip_address = result.get('address')
         time.sleep(1)
         if not ip_address:
-          print 'Waiting for IP...'
+          logging.debug('Waiting for IP...')
 
-    print 'Got IP %s' % ip_address
+    logging.info('Got IP %s' % ip_address)
     return ip_address
 
   def reserve_disk(self, name, size):
@@ -89,9 +96,9 @@ class Gcloud:
         ).execute()
     except HttpError, e:
       if e.resp.status == 404:
-        print 'Disk does not exist. Unable to delete'
+        logging.debug('Disk does not exist. Unable to delete')
       elif e.resp.status == 400:
-        print 'Disk still in use. Unable to delete'
+        logging.debug('Disk still in use. Unable to delete')
       else:
         raise
 

@@ -84,7 +84,7 @@ class MongoReplica(object):
     )
 
     args = dict(
-      size=replica,
+      size=replica,Connecting...
       ip=ip_address,
       **self.args)
 
