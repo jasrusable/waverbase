@@ -120,9 +120,9 @@ if __name__ == '__main__':
   processor = AppService.Processor(handler)
 
   port=9090
-  transport = TSocket.TServerSocket()
+  transport = TSocket.TServerSocket(port=port)
   tfactory = TTransport.TBufferedTransportFactory()
-  pfactory = TBinaryProtocol.TBinaryProtocolFactory(port=port)
+  pfactory = TBinaryProtocol.TBinaryProtocolFactory()
 
   print 'Listening on %d' % port
   server = TServer.TSimpleServer(processor, transport, tfactory, pfactory)
