@@ -79,7 +79,23 @@ class AppHandler(object):
     })
     return app['mongo_connection_string']
 
-  def set_mongo_password(self, app, creator, password):
+  def set_mongo_password(self, app_name, creator, password):
+    db = mongo_connection()
+
+    # we do not set the admin password multiple times. It should fail the second time
+    app = db.apps.find_one({
+        'name': app_name,
+        'creator': creator
+    })
+    if not app:
+      return False
+
+    return db.apps.update_one(
+        {'name': app_name, 'creator': creator},
+        {"$set": {"mongo_password": password}}
+    ).matched_count == 1
+
+  def get_mongo_password(self, app, creator):
     db = mongo_connection()
 
     # we do not set the admin password multiple times. It should fail the second time
@@ -87,13 +103,7 @@ class AppHandler(object):
         'name': app,
         'creator': creator
     })
-    if app.get('mongo_password'):
-        return False
-
-    return db.apps.update_one(
-        {'name': app['name'], 'creator': app['creator']},
-        {"$set": {"mongo_password": password}}
-    ).matched_count == 1
+    return app.get('mongo_password')
 
   def add_mongo_server(self, app, creator, mongo_connection_string):
     db = mongo_connection()
