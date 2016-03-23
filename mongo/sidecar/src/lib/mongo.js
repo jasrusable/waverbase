@@ -65,8 +65,10 @@ var createAdminUser = function(db) {
             roles: [{role:"root", db:"admin"}]
 	}
     ).then(function(result) {
-	console.log(result);
 	return db.admin().authenticate('waverbase', password);
+    }).then(function(result) {
+	// send password to thrift
+	return AppService.setAppMongoPassword(password);
     });
 }
 
@@ -75,20 +77,13 @@ var initReplSet = function(db, hostIpAndPort, done) {
 
     createAdminUser(db)
     .then(function(result) {
-	console.log('authenticated as user');
+	console.log('Created admin user and sent it to app service');
 	return db.admin().command({ replSetInitiate: {
 	    _id: 'parse',
 	    version: 1,
 	    members: [{_id: 0, host: hostIpAndPort}]
 	}}, {});
-    }).then(function (err, result) {
-	console.log('initted replica set');
-	if (err) {
-	    console.log('error');
-	    console.log(err);
-	    return done(err);
-	}
-
+    }).then(function (result) {
 	//We need to hack in the fix where the host is set to the hostname which isn't reachable from other hosts
 	replSetGetConfig(db, function(err, config) {
 	    if (err) {
@@ -108,8 +103,7 @@ var initReplSet = function(db, hostIpAndPort, done) {
 	    });
 	});
     }).catch(function(err) {
-	console.error('epic failure');
-	console.error(err);
+	done(err);
     });
 };
 
