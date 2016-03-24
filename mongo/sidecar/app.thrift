@@ -45,6 +45,9 @@ service AppService {
     1: string name,
     2: string creator,
     3: string password),
+  string get_mongo_password(
+    1: string name,
+    2: string creator),
   void add_mongo_server(
     1: string name,
     2: string creator,
