@@ -2,6 +2,7 @@ import os
 import pymongo
 from plumbum import local, FG, ProcessExecutionError
 import time
+import logging
 
 from gcloud import gcloud
 
@@ -37,13 +38,6 @@ class MongoReplica(object):
     client.test.test.find_one({})
     return client
 
-  def init_security(self, db):
-    # create a super user for ourselves
-    print db.admin.add_user(
-      'waverbase-root',
-      'supersecretpassword',
-       roles=[{"role": "userAdminAnyDatabase", "db": "admin"}])
-
   def get_mongo_ips(self):
     return kubectl["get", "svc", "-o", 'jsonpath="{.items[*].status.loadBalancer.ingress[*].ip}"',
             "-l", "role=mongo,app=%s" % self.app]().split();
@@ -59,16 +53,16 @@ class MongoReplica(object):
 
   def create(self):
     if self.num_replicas != 0:
-        print '%d mongo replicas already exist' % self.num_replicas
+        logging.debug('%d mongo replicas already exist' % self.num_replicas)
 
-    print 'Creating mongo replicas'
+    logging.info('Creating mongo replicas')
     interleave_wait(
         self.add(1),
         self.add(2),
         self.add(3))
 
 
-    print 'Created'
+    logging.info('Created')
     #db = self.connect()
 
     #print 'Securing...'
@@ -103,11 +97,11 @@ class MongoReplica(object):
 
   def create_kube_from_template(self, file_name, args):
     template = open(file_name).read() % args
-    print (kubectl["create", "-f", "-", "--logtostderr"] << template)()
+    logging.info((kubectl["create", "-f", "-", "--logtostderr"] << template)())
 
   def delete_kube_by_name(self, name):
     try:
-        print (kubectl["delete", name])()
+        logging.info((kubectl["delete", name])())
         return True
     except ProcessExecutionError:
       return False
