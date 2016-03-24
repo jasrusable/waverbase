@@ -7,17 +7,19 @@ var AppService = require('./app_service');
 
 var localhost = '127.0.0.1'; //Can access mongo as localhost from a sidecar
 
-var getDb = function(host, done) {
+var getDb = function(host, cb, errback) {
     //If they called without host like getDb(function(err, db) { ... });
     if (arguments.length === 1) {
 	      if (typeof arguments[0] === 'function') {
-	          done = arguments[0];
+	          cb = arguments[0];
 	          host = localhost;
 	      }
 	      else {
 	          throw new Error('getDb illegal invocation. User either getDb(\'hostAddr\', function(err, db) { ... }) OR getDb(function(err, db) { ... })');
 	      }
     }
+
+    var r = (Math.random()*50)|0;
 
     host = host || localhost;
     var mongoDb = new Db(
@@ -26,12 +28,20 @@ var getDb = function(host, done) {
         {
 	          authSource: 'admin'
 	      });
-    mongoDb.open(function (err, db) {
-	      if (err) {
-	          return done(err);
-	      }
-
-	      return done(null, db);
+        mongoDb.open(function (err, db) {
+            // we deal with errors ourself because this callback can be
+            // called multiple times from mongo but "async" callbacks
+            // may only be called once. For unknown reasosn
+            if (err) {
+                if (errback) {
+                    errback(err);
+                } else {
+                    console.error('Failure getting db '+err);
+                }
+            }
+            else {
+                return cb(null, db);
+            }
     });
 };
 
