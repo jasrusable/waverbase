@@ -2,7 +2,7 @@ import sys
 sys.path.append('../gen-py')
 
 import logging
-logging.basicConfig()
+logging.basicConfig(level=logging.DEBUG)
 
 from thrift.transport import TSocket
 from thrift.transport import TTransport
@@ -118,6 +118,7 @@ class AppHandler(object):
     return app['mongo_databases']
 
   def ping(self):
+    logging.info('pong')
     return 'pong'
 
 
@@ -134,6 +135,6 @@ if __name__ == '__main__':
   tfactory = TTransport.TBufferedTransportFactory()
   pfactory = TBinaryProtocol.TBinaryProtocolFactory()
 
-  print 'Listening on %d' % port
-  server = TServer.TSimpleServer(processor, transport, tfactory, pfactory)
+  logging.info('Listening on %d' % port)
+  server = TServer.TThreadPoolServer(processor, transport, tfactory, pfactory)
   server.serve()
