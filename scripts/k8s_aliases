@@ -9,3 +9,8 @@ describe_pod() { kubectl describe pod/$(pod_name $1); }
 shell_pod() { kubectl exec -it $(pod_name $1) bash; }
 attach_pod() { kubectl attach $(pod_name $1); }
 sidecar() { kubectl logs $(pod_name mongo-$1-$2) -c mongo-sidecar; }
+
+alias pods='kubectl get pods'
+alias rcs='kubectl get rcs'
+alias svcs='kubectl get svc'
+
