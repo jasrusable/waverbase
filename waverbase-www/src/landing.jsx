@@ -4,7 +4,7 @@ const Landing = React.createClass({
   render: function(): React.Element {
     return (
       <div className="ui container">
-        <h1>Dashboard</h1>
+        <h1>Landing</h1>
       </div>
     );
   },

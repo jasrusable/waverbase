@@ -11,6 +11,7 @@ import Landing from './landing.jsx';
 import Navigation from './navigation.jsx';
 import ResetPassword from './reset-password.jsx';
 import {isSignedIn, } from './auth.jsx';
+import Dashboard from './dashboard.jsx';
 
 const App = React.createClass({
   render: function() {
@@ -20,16 +21,6 @@ const App = React.createClass({
           <Navigation />
         </div>
         {this.props.children}
-      </div>
-    );
-  },
-})
-
-const Dashboard = React.createClass({
-  render: function() {
-    return (
-      <div className="ui container">
-        <h1>Dashboard</h1>
       </div>
     );
   },
