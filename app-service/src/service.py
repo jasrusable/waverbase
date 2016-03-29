@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.DEBUG)
 from thrift.transport import TSocket
 from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol
-from thrift.server import TProcessPoolServer
+from thrift.server import TServer
 
 from app import AppService
 
@@ -136,5 +136,5 @@ if __name__ == '__main__':
   pfactory = TBinaryProtocol.TBinaryProtocolFactory()
 
   logging.info('Listening on %d' % port)
-  server = TProcessPoolServer.TProcessPoolServer(processor, transport, tfactory, pfactory)
+  server = TServer.TSimpleServer(processor, transport, tfactory, pfactory)
   server.serve()
