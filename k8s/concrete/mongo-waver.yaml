@@ -10,7 +10,8 @@ spec:
     spec:
       containers:
         - name: mongo-waver
-          image: eu.gcr.io/api-project-1075799951054/mongo:latest
+          #image: eu.gcr.io/api-project-1075799951054/mongo:latest
+          image: localhost:5000/mongo:latest
           ports:
             - containerPort: 27017
           volumeMounts:
@@ -18,9 +19,10 @@ spec:
               mountPath: /data/db
       volumes:
         - name: mongo-persistent-storage
-          gcePersistentDisk:
-            pdName: mongo-waver
-            fsType: ext4
+          emptyDir: {}
+          #gcePersistentDisk:
+          #  pdName: mongo-waver
+          #  fsType: ext4
     metadata:
       labels:
         name: mongo-waver

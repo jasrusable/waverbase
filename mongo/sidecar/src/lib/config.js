@@ -23,6 +23,10 @@ var getKubernetesROServiceAddress = function() {
   return process.env.KUBERNETES_SERVICE_HOST + ":" + process.env.KUBERNETES_SERVICE_PORT
 };
 
+var getKubernetesProtocol = function() {
+    return process.env.KUBERNETES_PROTOCOL || 'https';
+}
+
 module.exports = {
   loopSleepSeconds: process.env.MONGO_SIDECAR_SLEEP_SECONDS || 5,
   unhealthySeconds: process.env.MONGO_SIDECAR_UNHEALTHY_SECONDS || 15,
@@ -30,5 +34,6 @@ module.exports = {
   mongoHostname: process.env.MONGO_HOSTNAME,
   mongoPodLabels: getMongoPodLabels(),
   mongoPodLabelCollection: getMongoPodLabelCollection(),
-  kubernetesROServiceAddress: getKubernetesROServiceAddress()
+  kubernetesROServiceAddress: getKubernetesROServiceAddress(),
+  kubernetesProtocol: getKubernetesProtocol()
 };

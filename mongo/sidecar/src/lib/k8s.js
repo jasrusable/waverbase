@@ -8,7 +8,7 @@ var readToken = fs.readFileSync('/var/run/secrets/kubernetes.io/serviceaccount/t
 
 var client = new Client({
   host:  config.kubernetesROServiceAddress,
-  protocol: 'https',
+  protocol: config.kubernetesProtocol,
   version: 'v1',
   token: readToken
 });
@@ -47,10 +47,6 @@ var podContainsLabels = function podContainsLabels(pod, labels) {
 
   return true;
 };
-
-var getAppName() {
-    prcess.
-}
 
 module.exports = {
     getMongoPods: getMongoPods

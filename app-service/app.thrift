@@ -22,31 +22,34 @@ struct App {
 // OFF FROM THE WORLD
 service AppService {
   void create_app(
-    1: string app,
+    1: string name,
     2: string creator
   ),
   bool delete_app(
-    1: string app,
+    1: string name,
     2: string creator
    ),
   App get_app(
-    1: string app,
+    1: string name,
     2: string creator
   ),
   Address get_parse_server_address(
-    1: string app,
+    1: string name,
     2: string creator,
   ),
   list<string> get_mongo_connection_string(
-    1: string app,
+    1: string name,
     2: string creator,
   ),
   bool set_mongo_password(
-    1: string app,
+    1: string name,
     2: string creator,
     3: string password),
+  string get_mongo_password(
+    1: string name,
+    2: string creator),
   void add_mongo_server(
-    1: string app,
+    1: string name,
     2: string creator,
     3: string mongo_connection_string),
   string ping()

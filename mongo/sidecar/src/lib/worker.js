@@ -36,12 +36,16 @@ var init = function(done) {
     
 };
 
+function getDbWrapper(successCallback) {
+    return mongo.getDb('127.0.0.1', successCallback, finish);
+}
+
 var workloop = function workloop() {
   if (!hostName || !hostNameAndPort) {
     throw new Error('Must initialize with the host machine\'s addr');
   }
 
-  async.parallel([ mongo.getDb, k8s.getMongoPods ], function(err, results) {
+  async.parallel([ getDbWrapper, k8s.getMongoPods ], function(err, results) {
     if (err) {
       return finish(err);
     }

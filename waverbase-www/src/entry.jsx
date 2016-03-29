@@ -14,6 +14,7 @@ import ContactUs from './contact-us.jsx';
 import TermsAndConditions from './terms-and-conditions.jsx';
 import {isSignedIn, } from './auth.jsx';
 import Table from './table.jsx';
+import { Dashboard, Browser, } from './dashboard.jsx';
 
 const App = React.createClass({
   render: function() {
@@ -31,7 +32,6 @@ const App = React.createClass({
     );
   },
 })
-
 
 const UsersClass = React.createClass({
   render: function() {
@@ -164,6 +164,8 @@ const Dashboard = React.createClass({
 })
 
 
+=======
+>>>>>>> feature/www-dashboard
 function requireSignedIn(nextState, replace) {
   if (!isSignedIn()) {
     replace('/sign-in');
@@ -179,6 +181,7 @@ const routes =
       <Route path="sign-up" component={SignUp} />
       <Route path="reset-password" component={ResetPassword} />
       <Route path="dashboard" component={Dashboard} onEnter={requireSignedIn}>
+<<<<<<< HEAD
         <Route path="browser" component={Browser}> 
           <IndexRedirect to="users-class" />
           <Route path="users-class" component={UsersClass} />
@@ -187,6 +190,10 @@ const routes =
       </Route>
       <Route path="contact-us" component={ContactUs} />
       <Route path="terms-and-conditions" component={TermsAndConditions} />
+=======
+        <Route path="browser/:className" component={Browser} />
+      </Route>
+>>>>>>> feature/www-dashboard
     </Route>
   </Router>;
 
