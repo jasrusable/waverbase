@@ -110,16 +110,16 @@ const RolesClass = React.createClass({
 })
 
 
-const Browser = React.createClass({
-  render: function() {
-    return (
-      <div>
-        <h1>Table goes here (Browser)</h1>
-        {this.props.children}
-      </div>
-    );
-  },
-})
+// const Browser = React.createClass({
+//   render: function() {
+//     return (
+//       <div>
+//         <h1>Table goes here (Browser)</h1>
+//         {this.props.children}
+//       </div>
+//     );
+//   },
+// })
 
 
 const Menu = React.createClass({
@@ -145,33 +145,29 @@ const Menu = React.createClass({
 })
 
 
-const Dashboard = React.createClass({
-  render: function() {
-    return (
-      <div className="ui container">
-        <h1>Dashboard</h1>
-        <div className="ui grid">
-          <div className="ui four wide column">
-            <Menu />
-          </div>
-          <div className="ui twelve wide column">
-            {this.props.children}
-          </div>
-        </div>
-      </div>
-    );
-  },
-})
+// const Dashboard = React.createClass({
+//   render: function() {
+//     return (
+//       <div className="ui container">
+//         <h1>Dashboard</h1>
+//         <div className="ui grid">
+//           <div className="ui four wide column">
+//             <Menu />
+//           </div>
+//           <div className="ui twelve wide column">
+//             {this.props.children}
+//           </div>
+//         </div>
+//       </div>
+//     );
+//   },
+// })
 
-
-=======
->>>>>>> feature/www-dashboard
 function requireSignedIn(nextState, replace) {
   if (!isSignedIn()) {
     replace('/sign-in');
   }
 }
-
 
 const routes =
   <Router history={hashHistory}>
@@ -185,8 +181,7 @@ const routes =
       </Route>
       <Route path="contact-us" component={ContactUs} />
       <Route path="terms-and-conditions" component={TermsAndConditions} />
-      </Route>
-    </Route>
+    </Route>  
   </Router>;
 
 ReactDOM.render(
