@@ -10,8 +10,8 @@ import SignUp from './sign-up.jsx';
 import Landing from './landing.jsx';
 import Navigation from './navigation.jsx';
 import ResetPassword from './reset-password.jsx';
-import {isSignedIn, } from './auth.jsx';
-import Dashboard from './dashboard.jsx';
+import { isSignedIn, } from './auth.jsx';
+import { Dashboard, Browser, } from './dashboard.jsx';
 
 const App = React.createClass({
   render: function() {
@@ -39,7 +39,9 @@ const routes =
       <Route path="sign-in" component={SignIn} />
       <Route path="sign-up" component={SignUp} />
       <Route path="reset-password" component={ResetPassword} />
-      <Route path="dashboard" component={Dashboard} onEnter={requireSignedIn}/>
+      <Route path="dashboard" component={Dashboard} onEnter={requireSignedIn}>
+        <Route path="browser/:className" component={Browser} />
+      </Route>
     </Route>
   </Router>;
 

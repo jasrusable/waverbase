@@ -1,13 +1,62 @@
 import React from 'react';
+import { Link } from 'react-router';
 
-const Dashboard = React.createClass({
+const Menu = React.createClass({
   render: function() {
     return (
-      <div className="ui container">
-        <h1>Dashboard</h1>
+      <div className="ui vertical menu">
+        <div className="item">
+          <div className="header">Core</div>
+          <div className="menu">
+            <div className="item">
+              <div className="header">Browser</div>
+              <div className="menu">
+                <Link className="item" to="/dashboard/browser/users">Users</Link>
+                <Link className="item" to="/dashboard/browser/roles">Roles</Link>
+              </div>
+            </div>
+            <div className="item">
+              <div className="header">Cloud Code</div>
+              <div className="menu">
+                <a className="item">Cloud Code sub menu item</a>
+              </div>
+            </div>
+            <div className="item">
+              <div className="header">Webhooks</div>
+              <div className="menu">
+                <a className="item">Webhooks sub menu item</a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   },
 })
 
-module.exports = Dashboard;
+const Browser = React.createClass({
+  render: function() {
+    return (
+      <div>
+        {this.props.params.className}
+      </div>
+    )
+  },
+})
+
+const Dashboard = React.createClass({
+  render: function() {
+    return (
+      <div className="ui container">
+        <Menu />
+        <h1>Dashboard</h1>
+        {this.props.children}
+      </div>
+    );
+  },
+})
+
+module.exports = {
+  Dashboard,
+  Browser
+};
