@@ -60,7 +60,7 @@ const SignUp = React.createClass({
           <div className="field">
             <div className="ui checkbox" onClick={this._toggleIsTACChecked}>
               <input type="checkbox" tabIndex="0" className="hidden" checked={this.state.isTACChecked}/>
-              <label>I agree to the Terms and Conditions</label>
+              <label>I agree to the <Link to="/terms-and-conditions">Terms and Conditions</Link></label>
             </div>
           </div>
           <button className="ui button" type="submit" onClick={this._signUp}>Sign Up</button>
