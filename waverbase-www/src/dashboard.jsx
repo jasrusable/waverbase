@@ -1,7 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router';
 
+
 const Menu = React.createClass({
+  getInitialState: function() {
+    return {classes: ['users', 'roles', 'newlink']}
+  },
+
+
   render: function() {
     return (
       <div className="ui vertical menu">
@@ -11,8 +17,9 @@ const Menu = React.createClass({
             <div className="item">
               <div className="header">Browser</div>
               <div className="menu">
-                <Link className="item" to="/dashboard/browser/users">Users</Link>
-                <Link className="item" to="/dashboard/browser/roles">Roles</Link>
+                {this.state.classes.map(function(className) {
+                  return <Link key={className} className="item" to={`/dashboard/browser/${className}`}>{className}</Link>
+                })}
               </div>
             </div>
             <div className="item">
@@ -34,6 +41,7 @@ const Menu = React.createClass({
   },
 })
 
+
 const Browser = React.createClass({
   render: function() {
     return (
@@ -43,6 +51,7 @@ const Browser = React.createClass({
     )
   },
 })
+
 
 const Dashboard = React.createClass({
   render: function() {
@@ -55,6 +64,7 @@ const Dashboard = React.createClass({
     );
   },
 })
+
 
 module.exports = {
   Dashboard,
