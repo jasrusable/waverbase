@@ -13,7 +13,6 @@ import ResetPassword from './reset-password.jsx';
 import ContactUs from './contact-us.jsx';
 import TermsAndConditions from './terms-and-conditions.jsx';
 import {isSignedIn, } from './auth.jsx';
-import Table from './table.jsx';
 import { Dashboard, Browser, } from './dashboard.jsx';
 
 const App = React.createClass({
@@ -75,99 +74,15 @@ const UsersClass = React.createClass({
 })
 
 
-const RolesClass = React.createClass({
-  render: function() {
-    const CustomRenderer = React.createClass({
-      render: function() {
-        return <td>C {this.props.children}</td>;
-      }
-    });
-
-    const columns = [
-    {
-      title: 'Name',
-      key: 'name',
-      renderer: CustomRenderer,
-    }, {
-      title: 'Name2',
-      key: 'name2'
-    }];
-
-    const rows = [
-    {
-      name: 1,
-      name2: 2
-    }, {
-      name: 7,
-      name2: null
-    }
-    ];
-
-    return (
-      <Table columns={columns} rows={rows}/>
-    );
-  },
-})
 
 
-// const Browser = React.createClass({
-//   render: function() {
-//     return (
-//       <div>
-//         <h1>Table goes here (Browser)</h1>
-//         {this.props.children}
-//       </div>
-//     );
-//   },
-// })
-
-
-const Menu = React.createClass({
-  render: function() {
-    return (
-      <div className="ui vertical menu">
-        <div className="item">
-          Browser
-          <div className="menu">
-            <Link to="/dashboard/browser/users-class" className="item">UsersClass</Link>
-            <Link to="/dashboard/browser/roles-class" className="item">RolesClass</Link>
-          </div>
-        </div>
-        <a className="item">
-          Cloud Code
-        </a>
-        <a className="item">
-          Webhooks
-        </a>
-      </div>
-    );
-  },
-})
-
-
-// const Dashboard = React.createClass({
-//   render: function() {
-//     return (
-//       <div className="ui container">
-//         <h1>Dashboard</h1>
-//         <div className="ui grid">
-//           <div className="ui four wide column">
-//             <Menu />
-//           </div>
-//           <div className="ui twelve wide column">
-//             {this.props.children}
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   },
-// })
 
 function requireSignedIn(nextState, replace) {
   if (!isSignedIn()) {
     replace('/sign-in');
   }
 }
+
 
 const routes =
   <Router history={hashHistory}>

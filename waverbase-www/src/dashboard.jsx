@@ -1,6 +1,40 @@
 import React from 'react';
 import { Link } from 'react-router';
+import Table from './table.jsx';
+  
+const RolesClass = React.createClass({
+  render: function() {
+    const CustomRenderer = React.createClass({
+      render: function() {
+        return <td>C {this.props.children}</td>;
+      }
+    });
 
+    const columns = [
+    {
+      title: 'Name',
+      key: 'name',
+      renderer: CustomRenderer,
+    }, {
+      title: 'Name2',
+      key: 'name2'
+    }];
+
+    const rows = [
+    {
+      name: 1,
+      name2: 2
+    }, {
+      name: 7,
+      name2: null
+    }
+    ];
+
+    return (
+      <Table columns={columns} rows={rows}/>
+    );
+  },
+})
 
 const Menu = React.createClass({
   getInitialState: function() {
@@ -44,11 +78,18 @@ const Menu = React.createClass({
 
 const Browser = React.createClass({
   render: function() {
-    return (
-      <div>
-        {this.props.params.className}
-      </div>
-    )
+    if(this.props.params.className != 'roles')
+      return (
+        <div>
+          {this.props.params.className}
+        </div>
+      )
+    else
+      return (
+        <div>
+          <RolesClass />
+        </div>
+      )
   },
 })
 
