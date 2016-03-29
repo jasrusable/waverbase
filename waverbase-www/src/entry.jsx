@@ -181,19 +181,11 @@ const routes =
       <Route path="sign-up" component={SignUp} />
       <Route path="reset-password" component={ResetPassword} />
       <Route path="dashboard" component={Dashboard} onEnter={requireSignedIn}>
-<<<<<<< HEAD
-        <Route path="browser" component={Browser}> 
-          <IndexRedirect to="users-class" />
-          <Route path="users-class" component={UsersClass} />
-          <Route path="roles-class" component={RolesClass} />
-        </Route>
+        <Route path="browser/:className" component={Browser} />
       </Route>
       <Route path="contact-us" component={ContactUs} />
       <Route path="terms-and-conditions" component={TermsAndConditions} />
-=======
-        <Route path="browser/:className" component={Browser} />
       </Route>
->>>>>>> feature/www-dashboard
     </Route>
   </Router>;
 
