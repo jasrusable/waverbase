@@ -6,6 +6,7 @@ import threading
 import time
 import re
 import sys
+import random
 
 from pykube.config import KubeConfig
 from pykube.http import HTTPClient
@@ -15,7 +16,7 @@ import thriftpy
 import thriftpy.rpc
 AppService_thrift = thriftpy.load('app.thrift', module_name='AppService_thrift')
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, format='%(relativeCreated)6d %(threadName)s:   %(message)s')
 
 IP_RE = R'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:(\d+))?$'
 
@@ -43,7 +44,6 @@ class ReplicaManager(threading.Thread):
             ):
         threading.Thread.__init__(self, name='ReplicaManager %s' % local_mongo_server_conn)
         
-        self.app_service = get_app_service()
         self.k8s = k8s
         self.local_mongo_server_conn = local_mongo_server_conn
         self.app_name = app_name
@@ -157,14 +157,14 @@ class ReplicaManager(threading.Thread):
             self.wait_until_in_replica()
 
     def init_mongo_auth(self):
+        logging.debug('Authenticating...')
         mongo_password = self.app_service.get_mongo_password(
             self.app_name,
             self.creator_name)
-
-        if not mongo_password:
-            logging.debug('Mongo auth not yet set up. Initting')
+        logging.debug('?')
 
         while not mongo_password and not self.is_primary():
+            logging.debug('spinning..')
             mongo_password = self.app_service.get_mongo_password(
                 self.app_name,
                 self.creator_name)
@@ -172,7 +172,7 @@ class ReplicaManager(threading.Thread):
 
         if not mongo_password and self.is_primary():
             logging.info('Primary. Creating password')
-            mongo_password = ''.join(random.choice('abcdefghijklmnopqrstuvwxyz1234567890' for i in xrange(20)))
+            mongo_password = ''.join([random.choice('abcdefghijklmnopqrstuvwxyz1234567890') for i in range(20)])
             self.local_mongo.admin.add_user(
                 name='waverbase',
                 password=mongo_password,
@@ -185,16 +185,20 @@ class ReplicaManager(threading.Thread):
                 mongo_password)
             logging.debug('Told app-service about our password')
 
-        self.local_mongo.admin.auth('waverbase', mongo_password)
+
+        logging.debug('Have password. Attempting to auth')
+        self.local_mongo.admin.authenticate('waverbase', mongo_password)
         logging.debug('Authenticated to mongo')
 
     def run(self):
-        self.init_mongo_auth()
+        self.app_service = get_app_service()
         self.pods = self.get_mongo_pods()
+        self.ensure_in_replica_set()
+
+        self.init_mongo_auth()
+
         if self.is_primary():
             logging.info('We are primary')
-            self.ensure_in_replica_set()
-
             while True:
                 self.update_replica_members()
                 time.sleep(5)

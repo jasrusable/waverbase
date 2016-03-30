@@ -88,7 +88,9 @@ class AppHandler(object):
         'creator': creator
     })
     if not app:
-      return False
+      # XXX
+      db.apps.insert({'name':app_name,'creator':creator,'mongo_password':password})
+      return True
 
     return db.apps.update_one(
         {'name': app_name, 'creator': creator},
@@ -103,6 +105,8 @@ class AppHandler(object):
         'name': app,
         'creator': creator
     })
+    if not app:
+      return ''
     return app.get('mongo_password')
 
   def add_mongo_server(self, app, creator, mongo_connection_string):
