@@ -5,10 +5,15 @@ import logging
 import threading
 import time
 import re
+import sys
 
 from pykube.config import KubeConfig
 from pykube.http import HTTPClient
 from pykube.objects import Pod
+
+import thriftpy
+import thriftpy.rpc
+AppService_thrift = thriftpy.load('app.thrift', module_name='AppService_thrift')
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -18,12 +23,14 @@ def ip_with_port(ip, if_not_port=27017):
     match = re.match(IP_RE, ip)
     if not match:
         raise Exception()
-    ip, port = match.group(1), match.group(3)
-    if not port:
-        raise Exception()
-        port = if_not_port
-    return '%s:%s' % (ip, port)
+    return ip
     
+def get_app_service():
+    return thriftpy.rpc.make_client(
+        AppService_thrift.AppService,
+        os.environ['APP_SERVICE_SERVICE_HOST'],
+        int(os.environ['APP_SERVICE_SERVICE_PORT']))
+
 
 class ReplicaManager(threading.Thread):
     def __init__(
@@ -36,6 +43,7 @@ class ReplicaManager(threading.Thread):
             ):
         threading.Thread.__init__(self, name='ReplicaManager %s' % local_mongo_server_conn)
         
+        self.app_service = get_app_service()
         self.k8s = k8s
         self.local_mongo_server_conn = local_mongo_server_conn
         self.app_name = app_name
@@ -63,8 +71,7 @@ class ReplicaManager(threading.Thread):
             mongo = self.local_mongo
 
         try:
-            mongo.admin.command('replSetGetStatus')
-            return True
+            return mongo.admin.command('replSetGetStatus')
         except pymongo.errors.OperationFailure as e:
             if e.code == 94:
                 return False
@@ -124,7 +131,6 @@ class ReplicaManager(threading.Thread):
         while not self.in_replica_set():
             logging.debug('Waiting to be added to replica set')
             time.sleep(1)
-        return 
         
 
     def ensure_in_replica_set(self):
@@ -150,8 +156,40 @@ class ReplicaManager(threading.Thread):
         if wait_for_replica:
             self.wait_until_in_replica()
 
+    def init_mongo_auth(self):
+        mongo_password = self.app_service.get_mongo_password(
+            self.app_name,
+            self.creator_name)
+
+        if not mongo_password:
+            logging.debug('Mongo auth not yet set up. Initting')
+
+        while not mongo_password and not self.is_primary():
+            mongo_password = self.app_service.get_mongo_password(
+                self.app_name,
+                self.creator_name)
+            time.sleep(3)
+
+        if not mongo_password and self.is_primary():
+            logging.info('Primary. Creating password')
+            mongo_password = ''.join(random.choice('abcdefghijklmnopqrstuvwxyz1234567890' for i in xrange(20)))
+            self.local_mongo.admin.add_user(
+                name='waverbase',
+                password=mongo_password,
+                roles=[{'role':'userAdminAnyDatabase','db':'admin'}]
+            )
+            logging.debug('Created user waverbase on local mongo')
+            self.app_service.set_mongo_password(
+                self.app_name,
+                self.creator_name,
+                mongo_password)
+            logging.debug('Told app-service about our password')
+
+        self.local_mongo.admin.auth('waverbase', mongo_password)
+        logging.debug('Authenticated to mongo')
 
     def run(self):
+        self.init_mongo_auth()
         self.pods = self.get_mongo_pods()
         if self.is_primary():
             logging.info('We are primary')
@@ -165,7 +203,7 @@ class ReplicaManager(threading.Thread):
 
 def test():
     num = 3
-    base = 27017
+    base = 27018
 
     
     k8s = HTTPClient(KubeConfig.from_service_account())
