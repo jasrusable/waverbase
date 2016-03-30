@@ -1,6 +1,6 @@
 import React from 'react';
-import client from './client.jsx';
 import {Link, } from 'react-router';
+import client from '../util/client.jsx';
 
 const SignIn = React.createClass({
   contextTypes: {

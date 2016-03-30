@@ -1,5 +1,5 @@
 import React from 'react';
-import client from './client.jsx';
+import client from '../util/client.jsx';
 
 const VerifyAccount = React.createClass({
   contextTypes: {

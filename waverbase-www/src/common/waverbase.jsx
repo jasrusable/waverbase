@@ -1,8 +1,8 @@
 import React from 'react';
+import { Link, } from 'react-router';
 import Navigation from './navigation.jsx';
 
-
-const App = React.createClass({
+const Waverbase = React.createClass({
   render: function() {
     return (
       <div>
@@ -10,10 +10,14 @@ const App = React.createClass({
           <Navigation />
         </div>
         {this.props.children}
+        <div className="ui container">
+          <hr />
+          <Link to="/contact-us">Contact Us</Link>
+          <Link to="/terms-and-conditions">Terms and Conditions</Link>
+        </div>
       </div>
     );
   },
 })
 
-
-module.exports = App;
+module.exports = Waverbase;

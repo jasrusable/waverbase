@@ -1,5 +1,5 @@
 import React from 'react';
-import client from './client.jsx';
+import client from '../util/client.jsx';
 
 const ChooseNewPassword = React.createClass({
   contextTypes: {
@@ -48,11 +48,11 @@ const ChooseNewPassword = React.createClass({
         <form className="ui form">
           <div className="field">
             <label>New Password</label>
-            <input value={this.state.password} onChange={this._handlePassword} />
+            <input type="password" value={this.state.password} onChange={this._handlePassword} />
           </div>
           <div className="field">
             <label>Confirm new Password</label>
-          <input value={this.state.confirmationPassword} onChange={this._handleConfirmationPassword} />
+          <input type="password" value={this.state.confirmationPassword} onChange={this._handleConfirmationPassword} />
           </div>
           <button className="ui button" type="submit" onClick={this._chooseNewPassword}>Choose new password</button>
         </form>
