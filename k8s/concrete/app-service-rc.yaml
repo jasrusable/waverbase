@@ -10,22 +10,10 @@ spec:
     spec:
       containers:
         - name: app-service
-          #image: eu.gcr.io/api-project-1075799951054/app-service:latest
-          image: localhost:5000/app-service:latest
+          image: eu.gcr.io/api-project-1075799951054/app-service:latest
+          #image: localhost:5000/app-service:latest
           ports:
             - containerPort: 9090
-          volumeMounts:
-              - name: secrets
-                mountPath: /mnt/secret
-                readOnly: true
-          env:
-              - name: GOOGLE_APPLICATION_CREDENTIALS
-                value: /mnt/secret/waverbase-da075a1ff889.json
-
-      volumes:
-        - name: secrets
-          secret:
-              secretName: gcloud
     metadata:
       labels:
         name: app-service
