@@ -34,7 +34,7 @@ const Navigation = React.createClass({
             <i className="sidebar icon">
             </i>
           </a>
-          <Link to={homeLinkTo} className="active item">Waverbase</Link>
+          <Link to={homeLinkTo} className="item">Waverbase</Link>
           <div className="right item">
             {rightItemLinks}
           </div>

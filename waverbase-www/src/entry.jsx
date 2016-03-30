@@ -16,7 +16,8 @@ import ContactUs from './landing/contact-us.jsx';
 import TermsAndConditions from './landing/terms-and-conditions.jsx';
 import Landing from './landing/landing.jsx';
 import Dashboard from './dashboard/dashboard.jsx';
-import Browser from './dashboard/browser.jsx';
+import ClassBrowser from './dashboard/class-browser.jsx';
+import CreateNewClass from './dashboard/create-new-class.jsx';
 import Waverbase from './common/waverbase.jsx';
 import {isSignedIn, } from './util/auth.jsx';
 
@@ -45,7 +46,8 @@ const routes =
       <Route path="verify-account" component={VerifyAccount} />
       <Route path="dashboard" component={Dashboard} onEnter={requireSignedIn}>
         <Route path="change-password" component={ChangePassword} />
-        <Route path="browser/:className" component={Browser} />
+        <Route path="create-new-class" component={CreateNewClass} />
+        <Route path="class-browser/:className" component={ClassBrowser} />
       </Route>
       <Route path="contact-us" component={ContactUs} />
       <Route path="terms-and-conditions" component={TermsAndConditions} />

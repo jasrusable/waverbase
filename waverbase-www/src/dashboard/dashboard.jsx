@@ -37,14 +37,14 @@ const DashboardMenuItem = React.createClass({
         className="item"
         to={this.props.to}
         activeClassName="active" >
-        {this.props.title}
+        {this.props.children}
       </Link>
     );
   },
 })
 
 
-const BrowserMenuSubsection = React.createClass({
+const ClassesMenuSubsection = React.createClass({
   getInitialState: function() {
     return {classes: ['users', 'roles', 'newlink']}
   },
@@ -55,14 +55,24 @@ const BrowserMenuSubsection = React.createClass({
       return (
         <DashboardMenuItem
           key={className}
-          to={`/dashboard/browser/${className}`}
-          title={className}
-        />
+          to={`/dashboard/class-browser/${className}`}
+        >
+          {className}
+        </DashboardMenuItem>
       );
     })
+    const createNewClassMenuItem = (
+      <DashboardMenuItem
+        key="create-new"
+        to="/dashboard/create-new-class"
+      >
+        <i className="plus icon" /> Create new
+      </DashboardMenuItem>
+    )
     return (
-      <DashboardMenuSubsection title="Browser">
+      <DashboardMenuSubsection title="Classes">
         {items}
+        {createNewClassMenuItem}
       </DashboardMenuSubsection>
     );
   },
@@ -74,10 +84,12 @@ const DashboardMenu = React.createClass({
     return (
       <div className="ui vertical menu">
         <DashboardMenuSection title="My Account">
-          <DashboardMenuItem to="/dashboard/change-password" title="Change password" />
+          <DashboardMenuItem to="/dashboard/change-password">
+            Change password
+          </DashboardMenuItem>
         </DashboardMenuSection>
         <DashboardMenuSection title="Foo App">
-            <BrowserMenuSubsection />
+            <ClassesMenuSubsection />
             <DashboardMenuSubsection title="Cloud Code"/>
             <DashboardMenuSubsection title="Webhooks"/>
             <DashboardMenuSubsection title="Jobs"/>
@@ -96,10 +108,16 @@ const DashboardMenu = React.createClass({
 const Dashboard = React.createClass({
   render: function() {
     return (
-      <div className="ui container">
+      <div>
         <h1>Dashboard</h1>
-        <DashboardMenu/>
-        {this.props.children}
+        <div className="ui grid">
+          <div className="two wide column">
+            <DashboardMenu />
+          </div>
+          <div className="ten wide column">
+            {this.props.children}
+          </div>
+        </div>
       </div>
     );
   },

@@ -6,7 +6,10 @@ const Waverbase = React.createClass({
   render: function() {
     return (
       <div>
-        <div className="ui inverted vertical masthead center aligned segment">
+        <div
+          className="ui inverted vertical masthead center aligned segment"
+          style={{paddingTop: '0', paddingBottom: '0'}}
+        >
           <Navigation />
         </div>
         {this.props.children}
