@@ -22,5 +22,13 @@ services:
       - "9099:9099"
     depends_on:
       - mongo-dev
+      - email-sender
+  email-sender:
+    build:
+      context: ../
+      dockerfile: ./email-sender/ops/Dockerfile
+    volumes:
+      - ../email-sender/src:/home/waverbase/waverbase/email-sender/src
+      - ../email-sender/email-sender.thrift:/home/waverbase/waverbase/email-sender/email-sender.thrift
   mongo-dev:
     image: mongo

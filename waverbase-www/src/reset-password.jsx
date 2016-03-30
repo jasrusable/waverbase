@@ -14,9 +14,9 @@ const ResetPassword = React.createClass({
 
 
   _resetPassword: function() {
-    console.log(`Resetting password for email address ${this.state.emailAddress}`);
+    console.log(`Requesting password reset for email address ${this.state.emailAddress}`);
     client.resetPassword(this.state.emailAddress).then(function() {
-      console.log('Successfully reset password.');
+      console.log('Successfully requested password reset.');
       }).catch(function(error) {
       if (error instanceof EmailAddressNotFoundError) {
         console.log('No user with that email address exists.');

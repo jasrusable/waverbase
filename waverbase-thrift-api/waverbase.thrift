@@ -18,6 +18,10 @@ struct FindOptions {
   3: optional i32 limit
 }
 
+exception TokenNotFoundError {
+  1: string errorMessage
+}
+
 exception DuplicateUsernameError {
   1: string errorMessage
 }
@@ -41,15 +45,24 @@ exception EmailAddressNotFoundError {
 service Waverbase {
   Auth signUp(1: string emailAddress, 2: string password)
     throws (
-      1: DuplicateUsernameError duplicateUsernameError,
-      2: SignUpValidationError signUpValidationError,
+      1: DuplicateUsernameError e,
+      2: SignUpValidationError f,
     )
+
+  void verifyAccount(1: string token)
+    throws (1: TokenNotFoundError e)
 
   Auth signIn(1: string emailAddress, 2: string password)
     throws (1: NotAuthenticatedError e)
 
   void resetPassword(1: string emailAddress)
     throws (1: EmailAddressNotFoundError e)
+
+  void chooseNewPassword(1: string token, 2: string newPassword)
+    throws (1: TokenNotFoundError e)
+
+  void changePassword(1: string auth_token, 2: string newPassword)
+    throws (1: NotAuthenticatedError e, 2: NotAuthorisedError f)
 
   string listDatabases(1:string instanceUrl)
 

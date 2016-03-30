@@ -25,6 +25,8 @@ const SignIn = React.createClass({
     }).catch(function (error) {
       if (error instanceof NotAuthenticatedError) {
         console.log(error.errorMessage);
+      } else {
+        throw error;
       }
     });
   },

@@ -55,7 +55,7 @@ COPY ./ /home/waverbase/waverbase
 RUN chown -R waverbase:waverbase /home/waverbase/waverbase
 
 # Development or production thrift api server.
-EXPOSE 9090
+EXPOSE 9099
 
 WORKDIR /home/waverbase/waverbase/waverbase-thrift-api
 CMD pm2 start ops/processes.json && \

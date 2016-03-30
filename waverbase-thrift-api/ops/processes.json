@@ -9,4 +9,8 @@
   "script": "thrift",
   "args": ["--gen", "js:node", "./waverbase.thrift"],
   "watch": "./waverbase.thrift"
+}, {
+  "script": "thrift",
+  "args": ["--gen", "js:node", "../email-sender/email-sender.thrift"],
+  "watch": "../email-sender/email-sender.thrift",
 }]
