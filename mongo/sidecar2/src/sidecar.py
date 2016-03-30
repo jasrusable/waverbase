@@ -20,13 +20,9 @@ def ip_with_port(ip, if_not_port=27017):
         raise Exception()
     ip, port = match.group(1), match.group(3)
     if not port:
+        raise Exception()
         port = if_not_port
     return '%s:%s' % (ip, port)
-
-def only_ip(ip):
-    match = re.match(IP_RE, ip)
-    ip = match.group(1)
-    return ip
     
 
 class ReplicaManager(threading.Thread):
@@ -38,7 +34,7 @@ class ReplicaManager(threading.Thread):
             k8s,
             local_mongo_server_conn
             ):
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self, name='ReplicaManager %s' % local_mongo_server_conn)
         
         self.k8s = k8s
         self.local_mongo_server_conn = local_mongo_server_conn
@@ -89,6 +85,7 @@ class ReplicaManager(threading.Thread):
             'version': 1,
             'members': [{'_id': 0, 'host': ip_with_port(self.external_ip)}]
         })
+        time.sleep(3)
 
     def update_replica_members(self):
         self.pods = self.get_mongo_pods()
@@ -102,7 +99,7 @@ class ReplicaManager(threading.Thread):
 
         if to_add or to_remove:
             logging.info('Adding to rs: %s', sorted(list(to_add)))
-            logging.info('Removing from rs: %s', sorted(list(to_add)))
+            logging.info('Removing from rs: %s', sorted(list(to_remove)))
 
             # add members to the config
             config_id = max(m['_id'] for m in config['members']) + 1
@@ -136,7 +133,7 @@ class ReplicaManager(threading.Thread):
         if not self.in_replica_set():
             # check other mongo instances to see if they are in a replica set
             for pod in self.pods:
-                pod_mongo = None
+                pod_mongo = pymongo.MongoClient(pod.obj['metadata']['labels']['external_ip'])
                 if self.in_replica_set(pod_mongo):
                     wait_for_replica = True
                     logging.info('Pod %s is already in a replica set. Assuming we will be added to it', pod.metadata.external_ip)
@@ -165,8 +162,42 @@ class ReplicaManager(threading.Thread):
                 time.sleep(5)
 
 
+
+def test():
+    num = 3
+    base = 27017
+
     
-if __name__ == '__main__':
+    k8s = HTTPClient(KubeConfig.from_service_account())
+    k8s.url = 'http://127.0.0.1:8001'
+    k8s.session  = k8s.build_session()
+    def get_mongo_pods():
+        return [
+            Pod(None, {
+                'metadata': {
+                    'labels': {
+                        'external_ip': '127.0.0.1:%d' % p
+                    }
+                }
+            }
+            )
+            for p in range(base, base+num)
+        ]
+
+    for p in range(base, base+num):
+
+        replica_manager = ReplicaManager(
+            app_name='testapp',
+            creator_name='testcreator',
+            external_ip='127.0.0.1:%d' % p,
+            k8s=k8s,
+            local_mongo_server_conn = 'mongodb://127.0.0.1:%d' % p
+        )
+        replica_manager.get_mongo_pods = get_mongo_pods
+        replica_manager.start()
+    
+    
+def run():
     k8s = HTTPClient(KubeConfig.from_service_account())
     k8s.url = 'http://127.0.0.1:8001'
     k8s.session  = k8s.build_session()
@@ -178,16 +209,7 @@ if __name__ == '__main__':
         k8s=k8s,
         local_mongo_server_conn = os.environ['MONGO_CONNECTION_STRING'],
     )
-    def get_mongo_pods():
-        return [
-            Pod(None, {
-                'metadata': {
-                    'labels': {
-                        'external_ip': '127.0.0.1'
-                    }
-                }
-            }
-            )
-        ]
-    replica_manager.get_mongo_pods = get_mongo_pods
-    replica_manager.run()
+    replica_manager.start()
+
+if __name__ == '__main__':
+    test()
