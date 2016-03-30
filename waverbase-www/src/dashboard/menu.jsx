@@ -107,6 +107,9 @@ const DashboardMenu = React.createClass({
             <DashboardMenuSubsection title="API console"/>
             <DashboardMenuSubsection title="Migration"/>
         </DashboardMenuSection>
+        <DashboardMenuItem to="/dashboard/create-new-app">
+          <i className="plus icon" /> Create App
+        </DashboardMenuItem>
       </div>
     );
   },

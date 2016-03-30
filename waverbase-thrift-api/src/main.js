@@ -270,6 +270,10 @@ const waverbaseHandler = {
     assert(result.modifiedCount == 1)
   })),
 
+  createNewApp: wrap(function*(appName) {
+    const db = yield MongoClient.connect(URL);
+  }),
+
   listDatabases: wrap(function*(instanceUrl) {
     const db = yield MongoClient.connect(instanceUrl);
     const dbs = yield db.admin().listDatabases();
@@ -303,9 +307,6 @@ const waverbaseHandler = {
     const col = db.collection(collection);
 
     yield col.updateMany(JSON.parse(selector), JSON.parse(update));
-
-
-
 
     return null;
   }),

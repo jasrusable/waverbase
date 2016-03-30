@@ -10,7 +10,7 @@ const CreateNewClass = React.createClass({
 
 
   _createClass: function() {
-    console.log('Creating class.');
+    console.log('Fuck you pay us.');
   },
 
 
