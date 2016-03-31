@@ -1,6 +1,16 @@
 import React from 'react';
 import client from '../util/client.jsx';
 
+// TODO: change this to an import (currently in change-password.jsx)
+function withAuth(f) {
+  const auth_token = localStorage.getItem('auth_token');
+  const that = this;
+  return function(...args) {
+    args.unshift(auth_token);
+    return f.apply(that, args);
+  };
+}
+
 const CreateNewApp = React.createClass({
     getInitialState: function() {
         return {
@@ -10,7 +20,7 @@ const CreateNewApp = React.createClass({
 
     _createApp: function() {
         console.log('Fuck you pay us.');
-        client.createNewApp(this.state.appName);
+        withAuth(client.createNewApp)(this.state.appName);
     },
 
     _handleAppName: function(e) {
