@@ -270,9 +270,25 @@ const waverbaseHandler = {
     assert(result.modifiedCount == 1)
   })),
 
-  createNewApp: wrap(function*(appName) {
+  createNewApp: wrap(requiresAuth(function*(user ,appName) {
     const db = yield MongoClient.connect(URL);
-  }),
+    const apps = db.collection('apps');
+    const users = db.collection('users');
+
+    const appDocument = {
+      name: appName
+    };
+    yield apps.insert(appDocument);
+
+    const result = yield users.updateOne(user, {
+        $push: {
+          apps: appDocument['_id'],
+        }
+      }
+    );
+
+    db.close();
+  })),
 
   listDatabases: wrap(function*(instanceUrl) {
     const db = yield MongoClient.connect(instanceUrl);

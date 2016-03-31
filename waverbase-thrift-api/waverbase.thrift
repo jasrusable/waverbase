@@ -64,7 +64,8 @@ service Waverbase {
   void changePassword(1: string auth_token, 2: string newPassword)
     throws (1: NotAuthenticatedError e, 2: NotAuthorisedError f)
 
-  void createNewApp(1:string appName)
+  void createNewApp(1:string auth_token, 2:string appName)
+    throws (1: NotAuthenticatedError e, 2: NotAuthorisedError f)
 
   string listDatabases(1:string instanceUrl)
 
