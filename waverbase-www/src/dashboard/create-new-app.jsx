@@ -1,15 +1,6 @@
 import React from 'react';
 import client from '../util/client.jsx';
-
-// TODO: change this to an import (currently in change-password.jsx)
-function withAuth(f) {
-  const auth_token = localStorage.getItem('auth_token');
-  const that = this;
-  return function(...args) {
-    args.unshift(auth_token);
-    return f.apply(that, args);
-  };
-}
+import {withAuth, } from '../util/auth.jsx';
 
 const CreateNewApp = React.createClass({
     getInitialState: function() {
