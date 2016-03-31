@@ -1,6 +1,7 @@
 import React from 'react';
 import {Link, } from 'react-router';
-
+import {withAuth, } from '../util/auth.jsx';
+import client from '../util/client.jsx';
 
 const DashboardMenuSubsection = React.createClass({
   render: function() {
@@ -88,8 +89,49 @@ const ClassesMenuSubsection = React.createClass({
 })
 
 
-const DashboardMenu = React.createClass({
+const AppMenuSection = React.createClass({
   render: function() {
+    return (
+      <DashboardMenuSection title={this.props.appName}>
+        <ClassesMenuSubsection />
+        <DashboardMenuSubsection title="Cloud Code"/>
+        <DashboardMenuSubsection title="Webhooks"/>
+        <DashboardMenuSubsection title="Jobs"/>
+        <DashboardMenuSubsection title="Logs"/>
+        <DashboardMenuSubsection title="Config"/>
+        <DashboardMenuSubsection title="API console"/>
+        <DashboardMenuSubsection title="Migration"/>
+      </DashboardMenuSection>
+    );
+  }
+});
+
+
+const DashboardMenu = React.createClass({
+  getInitialState: function() {
+    return {
+      apps: [],
+    }
+  },
+
+
+  componentDidMount: function() {
+    const that = this;
+    withAuth(client.listApps)().then(function(apps){
+      that.setState({
+        apps: JSON.parse(apps),
+      });
+    });
+  },
+
+
+  render: function() {
+    const sections = this.state.apps.map(function (appName) {
+      return (
+        <AppMenuSection key={appName} appName={appName} />
+      );
+    });
+
     return (
       <div className="ui vertical menu">
         <DashboardMenuSection title="My Account">
@@ -107,6 +149,7 @@ const DashboardMenu = React.createClass({
             <DashboardMenuSubsection title="API console"/>
             <DashboardMenuSubsection title="Migration"/>
         </DashboardMenuSection>
+        {sections}
         <DashboardMenuItem to="/dashboard/create-new-app">
           <i className="plus icon" /> Create App
         </DashboardMenuItem>

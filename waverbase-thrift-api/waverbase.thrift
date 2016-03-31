@@ -67,6 +67,9 @@ service Waverbase {
   void createNewApp(1:string auth_token, 2:string appName)
     throws (1: NotAuthenticatedError e, 2: NotAuthorisedError f)
 
+  string listApps(1:string auth_token)
+    throws (1: NotAuthenticatedError e, 2: NotAuthorisedError f)
+
   string listDatabases(1:string instanceUrl)
 
   string listCollections(1:string instanceUrl, 2:string database)

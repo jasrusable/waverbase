@@ -290,6 +290,31 @@ const waverbaseHandler = {
     db.close();
   })),
 
+  listApps: wrap(requiresAuth(function*(user){
+    const db = yield MongoClient.connect(URL);
+    const appsCollection = db.collection('apps');
+
+    const appNamesPromises = user['apps'].map(function(appId) {
+      return appsCollection.findOne({
+        _id: appId,
+      });
+    });
+
+    const apps = yield appNamesPromises;
+
+    db.close();
+
+    return JSON.stringify(
+      apps.map(function(app) {
+        if(app){
+          return app['name'];
+        } else {
+          return 'undef';
+        }
+      })
+    );
+  })),
+
   listDatabases: wrap(function*(instanceUrl) {
     const db = yield MongoClient.connect(instanceUrl);
     const dbs = yield db.admin().listDatabases();
