@@ -12,7 +12,9 @@ from pykube.config import KubeConfig
 from pykube.http import HTTPClient
 from pykube.objects import Pod
 
-from util import get_app_service, is_primary, get_mongo_pods
+import thriftpy
+import thriftpy.rpc
+AppService_thrift = thriftpy.load('app.thrift', module_name='AppService_thrift')
 
 logging.basicConfig(level=logging.DEBUG, format='%(relativeCreated)6d %(threadName)s:   %(message)s')
 
@@ -24,6 +26,12 @@ def ip_with_port(ip, if_not_port=27017):
         raise Exception()
     return ip
     
+def get_app_service():
+    return thriftpy.rpc.make_client(
+        AppService_thrift.AppService,
+        os.environ['APP_SERVICE_SERVICE_HOST'],
+        int(os.environ['APP_SERVICE_SERVICE_PORT']))
+
 
 class ReplicaManager(threading.Thread):
     def __init__(
@@ -44,7 +52,19 @@ class ReplicaManager(threading.Thread):
         self.local_mongo = pymongo.MongoClient(self.local_mongo_server_conn)
 
     def get_mongo_pods(self):
-        return get_mongo_pods(self.k8s, self.app_name, self.creator_name)
+        pods = Pod.objects(self.k8s).filter(
+            selector={
+                'role': 'mongo',
+                'app': self.app_name,
+                'creator': self.creator_name
+            }
+        )
+
+        ready_pods = list(filter(operator.attrgetter("ready"), pods))
+
+        if not ready_pods:
+            raise Exception('Empty pod list. That is weird')
+        return ready_pods
 
     def in_replica_set(self, mongo=None):
         if mongo is None:
@@ -57,6 +77,13 @@ class ReplicaManager(threading.Thread):
                 return False
             else:
                 raise
+
+    def is_primary(self):
+        def key(ip):
+            return re.sub(r'[^0-9]', '', ip)
+
+        minimum = sorted([p.obj['metadata']['labels']['external_ip'] for p in self.pods], key=key)[0]
+        return minimum == self.external_ip
 
     def create_replica_set(self):
         logging.info('Creating replica set')
@@ -102,8 +129,8 @@ class ReplicaManager(threading.Thread):
                                        
     def wait_until_in_replica(self):
         while not self.in_replica_set():
+            logging.debug('Waiting to be added to replica set')
             time.sleep(1)
-        logging.debug('Added to replica set :)')
         
 
     def ensure_in_replica_set(self):
@@ -115,11 +142,11 @@ class ReplicaManager(threading.Thread):
                 pod_mongo = pymongo.MongoClient(pod.obj['metadata']['labels']['external_ip'])
                 if self.in_replica_set(pod_mongo):
                     wait_for_replica = True
-                    logging.info('Pod %s is already in a replica set. Assuming we will be added to it', pod.obj['metadata']['external_ip'])
+                    logging.info('Pod %s is already in a replica set. Assuming we will be added to it', pod.metadata.external_ip)
                     break
 
             # no other mongo instance is in a replica set so it needs to be created
-            if is_primary(self.pods, self.external_ip):
+            if self.is_primary():
                 self.create_replica_set()
             else:
                 logging.info('We are not primary. Waiting')
@@ -130,60 +157,47 @@ class ReplicaManager(threading.Thread):
             self.wait_until_in_replica()
 
     def init_mongo_auth(self):
+        logging.debug('Authenticating...')
         mongo_password = self.app_service.get_mongo_password(
             self.app_name,
             self.creator_name)
+        logging.debug('?')
 
-
-        while not mongo_password and not is_primary(self.pods, self.external_ip):
+        while not mongo_password and not self.is_primary():
+            logging.debug('spinning..')
             mongo_password = self.app_service.get_mongo_password(
                 self.app_name,
                 self.creator_name)
             time.sleep(3)
-        logging.debug('Got mongo password')
 
-        if not mongo_password and is_primary(self.pods, self.external_ip):
+        if not mongo_password and self.is_primary():
             logging.info('Primary. Creating password')
             mongo_password = ''.join([random.choice('abcdefghijklmnopqrstuvwxyz1234567890') for i in range(20)])
-
-        try:
-            self.local_mongo.admin.authenticate('waverbase', mongo_password)
-            logging.debug('Authenticated')
-            user_exists = True
-        except pymongo.errors.OperationFailure as e:
-            if e.code != 18:
-                raise
-            user_exists = False
-                
-        if not user_exists:
             self.local_mongo.admin.add_user(
                 name='waverbase',
                 password=mongo_password,
-                roles=[{'role':'root','db':'admin'}]
+                roles=[{'role':'userAdminAnyDatabase','db':'admin'}]
             )
             logging.debug('Created user waverbase on local mongo')
-
-
-            logging.debug('Have password. Attempting to auth')
-            self.local_mongo.admin.authenticate('waverbase', mongo_password)
-            logging.debug('Authenticated to mongo')
-
-        if is_primary(self.pods, self.external_ip):
             self.app_service.set_mongo_password(
                 self.app_name,
                 self.creator_name,
                 mongo_password)
             logging.debug('Told app-service about our password')
-            time.sleep(10)
+
+
+        logging.debug('Have password. Attempting to auth')
+        self.local_mongo.admin.authenticate('waverbase', mongo_password)
+        logging.debug('Authenticated to mongo')
 
     def run(self):
         self.app_service = get_app_service()
         self.pods = self.get_mongo_pods()
-
-        self.init_mongo_auth()
         self.ensure_in_replica_set()
 
-        if is_primary(self.pods, self.external_ip):
+        self.init_mongo_auth()
+
+        if self.is_primary():
             logging.info('We are primary')
             while True:
                 self.update_replica_members()
