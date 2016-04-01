@@ -140,5 +140,5 @@ if __name__ == '__main__':
   pfactory = TBinaryProtocol.TBinaryProtocolFactory()
 
   logging.info('Listening on %d' % port)
-  server = TServer.TThreadedServer(processor, transport, tfactory, pfactory)
+  server = TServer.TSimpleServer(processor, transport, tfactory, pfactory)
   server.serve()

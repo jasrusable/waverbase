@@ -24,7 +24,7 @@ spec:
   template:
     spec:
       containers:
-        - name: mongo
+        - name: mongo-node-%(app)s-%(size)d
           image: eu.gcr.io/api-project-1075799951054/mongo:latest
           command:
             - mongod
@@ -39,16 +39,11 @@ spec:
           volumeMounts:
             - name: mongo-persistent-storage
               mountPath: /data/db
-          env:
-            - name: EXTERNAL_IP
-              value: "%(ip)s"
-            - name: APP_NAME
-              value: "%(app)s"
-            - name: CREATOR_NAME
-              value: "%(creator)s"
         - name: mongo-sidecar
           image: eu.gcr.io/api-project-1075799951054/mongo-k8s-sidecar:latest
           env:
+            - name: MONGO_SIDECAR_POD_LABELS
+              value: "role=mongo,environment=test,app=%(app)s"
             - name: MONGO_HOSTNAME
               value: "%(ip)s"
             - name: APP_NAME
