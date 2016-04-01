@@ -142,7 +142,7 @@ class ReplicaManager(threading.Thread):
                 pod_mongo = pymongo.MongoClient(pod.obj['metadata']['labels']['external_ip'])
                 if self.in_replica_set(pod_mongo):
                     wait_for_replica = True
-                    logging.info('Pod %s is already in a replica set. Assuming we will be added to it', pod.metadata.external_ip)
+                    logging.info('Pod %s is already in a replica set. Assuming we will be added to it', pod.obj['metadata']['labels']['external_ip'])
                     break
 
             # no other mongo instance is in a replica set so it needs to be created
@@ -155,28 +155,37 @@ class ReplicaManager(threading.Thread):
         # wait until we are added to other mongos replica
         if wait_for_replica:
             self.wait_until_in_replica()
+        logging.debug('We are in a replica. Yaay')
+
+    @property
+    def is_master(self):
+        return self.local_mongo.admin.command('isMaster')['ismaster']
 
     def init_mongo_auth(self):
         logging.debug('Authenticating...')
         mongo_password = self.app_service.get_mongo_password(
             self.app_name,
             self.creator_name)
-        logging.debug('?')
 
-        while not mongo_password and not self.is_primary():
+        # ask mongo if we are mongo master. Whether we are primary doesn't help all that much
+        is_master = self.is_master
+
+        while not mongo_password and not is_master:
             logging.debug('spinning..')
             mongo_password = self.app_service.get_mongo_password(
                 self.app_name,
                 self.creator_name)
             time.sleep(3)
 
-        if not mongo_password and self.is_primary():
-            logging.info('Primary. Creating password')
+        if not mongo_password and is_master:
+            logging.info('Mongo master. Creating password')
             mongo_password = ''.join([random.choice('abcdefghijklmnopqrstuvwxyz1234567890') for i in range(20)])
             self.local_mongo.admin.add_user(
                 name='waverbase',
                 password=mongo_password,
-                roles=[{'role':'userAdminAnyDatabase','db':'admin'}]
+                roles=[
+                    {'role':'root','db':'admin'},
+                    {'role':'userAdminAnyDatabase','db':'admin'}]
             )
             logging.debug('Created user waverbase on local mongo')
             self.app_service.set_mongo_password(
@@ -197,18 +206,18 @@ class ReplicaManager(threading.Thread):
 
         self.init_mongo_auth()
 
-        if self.is_primary():
-            logging.info('We are primary')
-            while True:
+        while True:
+            if self.is_master:
                 self.update_replica_members()
-                time.sleep(5)
+            else:
+                logging.debug('We are not master but lets wait and see if we become master')
+            time.sleep(5)
 
 
 
 def test():
     num = 3
-    base = 27018
-
+    base = 27020
     
     k8s = HTTPClient(KubeConfig.from_service_account())
     k8s.url = 'http://127.0.0.1:8001'
