@@ -214,7 +214,6 @@ class ReplicaManager(threading.Thread):
             time.sleep(5)
 
 
-
 def test():
     num = 3
     base = 27020
@@ -250,8 +249,6 @@ def test():
     
 def run():
     k8s = HTTPClient(KubeConfig.from_service_account())
-    k8s.url = 'http://127.0.0.1:8001'
-    k8s.session  = k8s.build_session()
     
     replica_manager = ReplicaManager(
         app_name=os.environ['APP_NAME'],
@@ -263,4 +260,7 @@ def run():
     replica_manager.start()
 
 if __name__ == '__main__':
-    test()
+    if len(sys.argv) > 1 and sys.argv[1] == 'test':
+        test()
+    else:
+        run()

@@ -11,4 +11,4 @@ export APP_SERVICE_SERVICE_HOST=127.0.0.1
 export APP_SERVICE_SERVICE_PORT=9090
 
 cd src
-python3 sidecar.py
+python3 sidecar.py test
