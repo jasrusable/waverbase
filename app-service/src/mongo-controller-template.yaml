@@ -30,6 +30,8 @@ spec:
             - mongod
             - "--replSet"
             - rs0
+            - "--keyFile"
+            - "/mongo-keyfile"
             - "--smallfiles"
             - "--noprealloc"
             - "--config"

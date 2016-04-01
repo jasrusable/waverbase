@@ -249,13 +249,14 @@ def test():
     
 def run():
     k8s = HTTPClient(KubeConfig.from_service_account())
+    mongo_connection_string = os.environ.get('MONGO_CONNECTION_STRING', 'mongodb://127.0.0.1')
     
     replica_manager = ReplicaManager(
         app_name=os.environ['APP_NAME'],
         creator_name=os.environ['CREATOR_NAME'],
         external_ip=os.environ['EXTERNAL_IP'],
         k8s=k8s,
-        local_mongo_server_conn = os.environ['MONGO_CONNECTION_STRING'],
+        local_mongo_server_conn = mongo_connection_string,
     )
     replica_manager.start()
 
