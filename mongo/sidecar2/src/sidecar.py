@@ -135,46 +135,7 @@ class ReplicaManager(threading.Thread):
             self.creator_name)
 
 
-        while not mongo_password and not is_primary(self.pods, self.external_ip):
-            mongo_password = self.app_service.get_mongo_password(
-                self.app_name,
-                self.creator_name)
-            time.sleep(3)
-        logging.debug('Got mongo password')
-
-        if not mongo_password and is_primary(self.pods, self.external_ip):
-            logging.info('Primary. Creating password')
-            mongo_password = ''.join([random.choice('abcdefghijklmnopqrstuvwxyz1234567890') for i in range(20)])
-
-        try:
             self.local_mongo.admin.authenticate('waverbase', mongo_password)
-            logging.debug('Authenticated')
-            user_exists = True
-        except pymongo.errors.OperationFailure as e:
-            if e.code != 18:
-                raise
-            user_exists = False
-                
-        if not user_exists:
-            self.local_mongo.admin.add_user(
-                name='waverbase',
-                password=mongo_password,
-                roles=[{'role':'root','db':'admin'}]
-            )
-            logging.debug('Created user waverbase on local mongo')
-
-
-            logging.debug('Have password. Attempting to auth')
-            self.local_mongo.admin.authenticate('waverbase', mongo_password)
-            logging.debug('Authenticated to mongo')
-
-        if is_primary(self.pods, self.external_ip):
-            self.app_service.set_mongo_password(
-                self.app_name,
-                self.creator_name,
-                mongo_password)
-            logging.debug('Told app-service about our password')
-            time.sleep(10)
 
     def run(self):
         self.app_service = get_app_service()
