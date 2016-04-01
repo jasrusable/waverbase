@@ -3,7 +3,7 @@ import client from '../util/client.jsx';
 
 const VerifyAccount = React.createClass({
   contextTypes: {
-    router: React.PropTypes.object
+    router: React.PropTypes.object,
   },
 
 
@@ -16,7 +16,7 @@ const VerifyAccount = React.createClass({
   },
 
 
-  render: function() {
+  render: function(): React.Element {
     return (
       <div className="ui container">
         <p>Verifying your account...</p>

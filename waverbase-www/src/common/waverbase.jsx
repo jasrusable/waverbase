@@ -1,14 +1,17 @@
+// @flow
+
+
 import React from 'react';
 import { Link, } from 'react-router';
 import Navigation from './navigation.jsx';
 
 const Waverbase = React.createClass({
-  render: function() {
+  render: function(): React.Element {
     return (
       <div>
         <div
           className="ui inverted vertical masthead center aligned segment"
-          style={{paddingTop: '0', paddingBottom: '0'}}
+          style={{paddingTop: '0', paddingBottom: '0', }}
         >
           <Navigation />
         </div>

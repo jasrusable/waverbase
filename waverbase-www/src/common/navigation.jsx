@@ -1,13 +1,16 @@
+// @flow
+
+
 import React from 'react';
 import { Link, } from 'react-router';
 import {isSignedIn, } from '../util/auth.jsx';
 
 const Navigation = React.createClass({
   contextTypes: {
-    router: React.PropTypes.object
+    router: React.PropTypes.object,
   },
 
-  _signOut: function() {
+  _signOut: function(): void {
     console.log('Signing out.');
     localStorage.removeItem('auth_token');
     this.context.router.push('/');
@@ -25,7 +28,7 @@ const Navigation = React.createClass({
         </Link>,
         <Link key='sign-up' to='/sign-up' className="ui inverted button">
           Sign Up
-        </Link>
+        </Link>,
     ]
     return (
       <div className="ui container">

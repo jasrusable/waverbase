@@ -1,15 +1,15 @@
 import React from 'react';
 
 const Row = React.createClass({
-  render: function() {
+  render: function(): React.Element {
     const DefaultRenderer = React.createClass({
-      render: function() {
+      render: function(): React.Element {
         return <td>{this.props.children}</td>;
-      }
+      },
     });
 
-    const row = this.props.columns.map(function(col) {
-      const Renderer = ('renderer' in col) ? col.renderer : DefaultRenderer;
+    const row = this.props.columns.map(function(col: Object): Array {
+      const Renderer = 'renderer' in col ? col.renderer : DefaultRenderer;
       return <Renderer key={this.props.index + col.key}>{this.props.row[col.key]}</Renderer>;
     }.bind(this));
 
@@ -19,7 +19,7 @@ const Row = React.createClass({
 
 
 const Body = React.createClass({
-  render: function() {
+  render: function(): React.Element {
 
     const rows = [];
     for (let index in this.props.rows) {
@@ -28,13 +28,13 @@ const Body = React.createClass({
     }
 
     return <tbody>{rows}</tbody>;
-  }
+  },
 })
 
 
 const Header = React.createClass({
-  render: function() {
-    const cols = this.props.columns.map(function(col) {
+  render: function(): React.Element {
+    const cols = this.props.columns.map(function(col: Object): Array {
       return <th key={col.key}>{col.title}</th>;
     });
 
@@ -43,12 +43,12 @@ const Header = React.createClass({
         <tr>{cols}</tr>
       </thead>
     );
-  }
+  },
 })
 
 
 const Table = React.createClass({
-  render: function() {
+  render: function(): React.Element {
     return (
       <table className="ui celled table">
         <Header columns={this.props.columns}/>

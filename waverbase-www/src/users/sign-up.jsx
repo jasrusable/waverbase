@@ -1,46 +1,47 @@
+// @flow
+
+
 import React from 'react';
 import {Link, } from 'react-router';
 import client from '../util/client.jsx';
 
 const SignUp = React.createClass({
   contextTypes: {
-    router: React.PropTypes.object
+    router: React.PropTypes.object,
   },
 
-  getInitialState: function() {
+  getInitialState: function(): Object{
     return {
       emailAddress: '',
       password: '',
       isTACChecked: false,
-    }
+    };
   },
 
 
-  _signUp: function() {
+  _signUp: function(): void {
     const router = this.context.router;
     client.signUp(this.state.emailAddress, this.state.password)
-    .then(function(auth) {
+    .then(function(auth: Object) {
       console.log(`Sucessfully signed up, got auth ${JSON.stringify(auth)}`);
       localStorage.setItem('auth_token', auth.token);
       router.push('/dashboard');
-    }).catch(function(exception) {
-      console.log('exception', exception);
-    });
+    })
   },
 
 
-  _handleEmailAddress: function(e) {
-    this.setState({emailAddress: e.target.value});
+  _handleEmailAddress: function(e: any): void {
+    this.setState({emailAddress: e.target.value, });
   },
 
 
-  _handlePassword: function(e) {
-    this.setState({password: e.target.value});
+  _handlePassword: function(e: any): void {
+    this.setState({password: e.target.value, });
   },
 
 
-  _toggleIsTACChecked: function() {
-    this.setState({isTACChecked: !this.state.isTACChecked});
+  _toggleIsTACChecked: function(): void {
+    this.setState({isTACChecked: !this.state.isTACChecked, });
   },
 
 

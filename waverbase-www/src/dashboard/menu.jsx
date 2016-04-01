@@ -1,10 +1,10 @@
 import React from 'react';
-import {Link, } from 'react-router';
-import {withAuth, } from '../util/auth.jsx';
+import { Link, } from 'react-router';
+import { withAuth, } from '../util/auth.jsx';
 import client from '../util/client.jsx';
 
 const DashboardMenuSubsection = React.createClass({
-  render: function() {
+  render: function(): React.Element {
     return (
       <div className="item">
         <div className="header">{this.props.title}</div>
@@ -13,12 +13,12 @@ const DashboardMenuSubsection = React.createClass({
         </div>
       </div>
     );
-  }
+  },
 })
 
 
 const DashboardMenuSection = React.createClass({
-  render: function() {
+  render: function(): React.Element {
     return (
       <div className="item">
         <div className="header" to="/dashboard">{this.props.title}</div>
@@ -32,7 +32,7 @@ const DashboardMenuSection = React.createClass({
 
 
 const DashboardMenuItem = React.createClass({
-  render: function() {
+  render: function(): React.Element {
     return (
       <Link
         className="item"
@@ -46,7 +46,7 @@ const DashboardMenuItem = React.createClass({
 
 
 const ClassesMenuSubsection = React.createClass({
-  getInitialState: function() {
+  getInitialState: function(): Object {
     return {
       classes: [],
     }
@@ -55,13 +55,13 @@ const ClassesMenuSubsection = React.createClass({
 
   componentDidMount: function() {
     this.setState({
-      classes: ['users', 'roles', 'dildos'],
+      classes: ['users', 'roles', 'dildos', ],
     })
   },
 
 
-  render: function() {
-    const items = this.state.classes.map(function(className) {
+  render: function(): React.Element {
+    const items = this.state.classes.map(function(className: String): React.Element {
       return (
         <DashboardMenuItem
           key={className}
@@ -70,15 +70,14 @@ const ClassesMenuSubsection = React.createClass({
           {className}
         </DashboardMenuItem>
       );
-    })
-    const createNewClassMenuItem = (
+    });
+    const createNewClassMenuItem =
       <DashboardMenuItem
         key="create-new"
         to="/dashboard/create-new-class"
       >
         <i className="plus icon" /> Create new
       </DashboardMenuItem>
-    )
     return (
       <DashboardMenuSubsection title="Classes">
         {items}
@@ -90,7 +89,7 @@ const ClassesMenuSubsection = React.createClass({
 
 
 const AppMenuSection = React.createClass({
-  render: function() {
+  render: function(): React.Element {
     return (
       <DashboardMenuSection title={this.props.appName}>
         <ClassesMenuSubsection />
@@ -103,12 +102,12 @@ const AppMenuSection = React.createClass({
         <DashboardMenuSubsection title="Migration"/>
       </DashboardMenuSection>
     );
-  }
+  },
 });
 
 
 const DashboardMenu = React.createClass({
-  getInitialState: function() {
+  getInitialState: function(): Object {
     return {
       apps: [],
     }
@@ -116,22 +115,15 @@ const DashboardMenu = React.createClass({
 
 
   componentDidMount: function() {
-    const that = this;
-    withAuth(client.listApps)().then(function(apps){
-      that.setState({
-        apps: JSON.parse(apps),
+    withAuth(client.listApps)().then(function(apps: Array<App>) {
+      this.setState({
+        apps: apps,
       });
-    });
+    }.bind(this));
   },
 
 
-  render: function() {
-    const sections = this.state.apps.map(function (appName) {
-      return (
-        <AppMenuSection key={appName} appName={appName} />
-      );
-    });
-
+  render: function(): React.Element {
     return (
       <div className="ui vertical menu">
         <DashboardMenuSection title="My Account">
@@ -139,19 +131,9 @@ const DashboardMenu = React.createClass({
             Change password
           </DashboardMenuItem>
         </DashboardMenuSection>
-        <DashboardMenuSection title="Foo App">
-            <ClassesMenuSubsection />
-            <DashboardMenuSubsection title="Cloud Code"/>
-            <DashboardMenuSubsection title="Webhooks"/>
-            <DashboardMenuSubsection title="Jobs"/>
-            <DashboardMenuSubsection title="Logs"/>
-            <DashboardMenuSubsection title="Config"/>
-            <DashboardMenuSubsection title="API console"/>
-            <DashboardMenuSubsection title="Migration"/>
-        </DashboardMenuSection>
-        {sections}
         <DashboardMenuItem to="/dashboard/create-new-app">
-          <i className="plus icon" /> Create App
+          Create new app
+          <i className="plus icon"></i>
         </DashboardMenuItem>
       </div>
     );

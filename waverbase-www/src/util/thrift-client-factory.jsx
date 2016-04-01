@@ -1,6 +1,6 @@
 var Thrift = require('thrift');
 
-module.exports = function(service, path) {
+module.exports = function(service: Function, path: String): Function {
   var transport = new Thrift.TXHRTransport(path);
   var protocol  = new Thrift.TJSONProtocol(transport);
   return new service(protocol);

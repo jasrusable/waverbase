@@ -1,9 +1,13 @@
+// @flow
+
+
 import React from 'react';
 import client from '../util/client.jsx';
-import {withAuth, } from '../util/auth.jsx';
+import { withAuth, } from '../util/auth.jsx';
+
 
 const ChangePassword = React.createClass({
-  getInitialState: function() {
+  getInitialState: function(): Object{
     return {
       password: '',
       confirmationPassword: '',
@@ -11,24 +15,24 @@ const ChangePassword = React.createClass({
   },
 
 
-  _changePassword: function() {
+  _changePassword: function(): void {
     withAuth(client.changePassword)(this.state.password).then(function() {
       console.log('Successfully changed password.');
     });
   },
 
 
-  _handlePassword: function(e) {
-    this.setState({password: e.target.value});
+  _handlePassword: function(e: any): void {
+    this.setState({password: e.target.value, });
   },
 
 
-  _handleConfirmationPassword: function(e) {
-    this.setState({confirmationPassword: e.target.value});
+  _handleConfirmationPassword: function(e: any): void {
+    this.setState({confirmationPassword: e.target.value, });
   },
 
 
-  render: function() {
+  render: function(): React.Element {
     return (
       <div className="ui container">
         <h1>Change Password</h1>

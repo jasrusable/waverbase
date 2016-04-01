@@ -1,23 +1,23 @@
-import thriftClientFactory from './thrift-client-factory.js';
+import thriftClientFactory from './thrift-client-factory.jsx';
 import {Client, } from 'thrift-loader?service=Waverbase!../../../waverbase-thrift-api/waverbase.thrift';
 
 const shittyClient = thriftClientFactory(Client, 'http://localhost:9099/waverbase');
 
-function promisifyClientMethod(original, client) {
-  return function(...args) {
-    return new Promise(function(resolve, reject) {
+function promisifyClientMethod(original: Function, client: Object): Function {
+  return function(...args: array): Promise{
+    return new Promise(function(resolve: Function, reject: Function) {
       args.push(true);
       const promise = original.apply(client, args);
-      promise.then(function(result, status) {
+      promise.then(function(result: mixed, status: mixed) {
         resolve(result);
-      }, function(_, __, exception) {
+      }, function(_: Object, __: Object, exception: Exception) {
         reject(exception);
       })
     });
   }
 }
 
-function promisifyClient(client) {
+function promisifyClient(client: Object): Object{
   var pclient = {};
   for (let key in client) {
     pclient[key] = promisifyClientMethod(client[key], client);

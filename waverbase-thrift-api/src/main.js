@@ -9,7 +9,7 @@ import Waverbase from '../gen-nodejs/Waverbase.js';
 import EmailSender from '../gen-nodejs/EmailSender.js';
 import promisify from 'es6-promisify';
 import hat from 'hat';
-import { User, Auth, TokenNotFoundError, DuplicateUsernameError, SignUpValidationError, NotAuthenticatedError, EmailAddressNotFoundError} from '../gen-nodejs/waverbase_types.js';
+import { ResultSet, User, Auth, TokenNotFoundError, DuplicateUsernameError, SignUpValidationError, NotAuthenticatedError, EmailAddressNotFoundError} from '../gen-nodejs/waverbase_types.js';
 
 const connection = createConnection('email-sender', 9098, {
   transport: TBufferedTransport(),
@@ -198,6 +198,7 @@ const waverbaseHandler = {
     return yield getSession(user);
   }),
 
+
   resetPassword: wrap(function* (emailAddress) {
     winston.info(`Resetting password for user with email address ${emailAddress}`);
     const db = yield MongoClient.connect(URL);
@@ -270,49 +271,48 @@ const waverbaseHandler = {
     assert(result.modifiedCount == 1)
   })),
 
-  createNewApp: wrap(requiresAuth(function*(user ,appName) {
+  findDocumentsByAppAndClass: wrap(function* (app, class_, query) {
+    //TODO: XXX
+    winston.info(`Querying with app ${app}, ${class_} and ${query}`);
+    const db = yield MongoClient.connect(URL);
+    const collection = db.collection(class_);
+
+    const results = yield collection.find().toArray();
+    const serializedResults = results.map((result) => JSON.stringify(result))
+
+    return new ResultSet({results: serializedResults});
+  }),
+
+
+  createApp: requiresAuth(wrap(function*(user, name) {
     const db = yield MongoClient.connect(URL);
     const apps = db.collection('apps');
     const users = db.collection('users');
 
     const appDocument = {
-      name: appName
+      name: appName,
     };
     yield apps.insert(appDocument);
 
     const result = yield users.updateOne(user, {
         $push: {
-          apps: appDocument['_id'],
+          apps: appDocument._id,
         }
       }
     );
-
-    db.close();
   })),
 
-  listApps: wrap(requiresAuth(function*(user){
+  listApps: wrap(requiresAuth(function*(user) {
     const db = yield MongoClient.connect(URL);
-    const appsCollection = db.collection('apps');
+    const apps = db.collection('apps');
 
-    const appNamesPromises = user['apps'].map(function(appId) {
-      return appsCollection.findOne({
-        _id: appId,
-      });
-    });
+    const appDocuments = yield apps.find({
+      _id: {
+        $in: user.apps || [],
+      },
+    }).toArray()
 
-    const apps = yield appNamesPromises;
-
-    db.close();
-
-    return JSON.stringify(
-      apps.map(function(app) {
-        if(app){
-          return app['name'];
-        } else {
-          return 'undef';
-        }
-      })
-    );
+    return appDocuments;
   })),
 
   listDatabases: wrap(function*(instanceUrl) {
@@ -322,6 +322,7 @@ const waverbaseHandler = {
     db.close();
     return JSON.stringify(dbs);
   }),
+
 
   findDocuments: wrap(function* (instanceUrl, database, collection, options) {
     const db = yield MongoClient.connect(instanceUrl + '/' + database);
@@ -351,6 +352,7 @@ const waverbaseHandler = {
 
     return null;
   }),
+
 
   insertDocument: wrap(function* (instanceUrl, database, collection, doc) {
     const db = yield MongoClient.connect(instanceUrl + '/' + database);

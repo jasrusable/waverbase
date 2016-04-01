@@ -1,8 +1,11 @@
+// @flow
+
+
 import React from 'react';
 
 
 const CreateNewClass = React.createClass({
-  getInitialState: function() {
+  getInitialState: function(): Object {
     return {
       className: '',
     };
@@ -14,12 +17,12 @@ const CreateNewClass = React.createClass({
   },
 
 
-  _handleClassName: function(e) {
-    this.setState({className: e.target.value})
+  _handleClassName: function(e: any): void {
+    this.setState({className: e.target.value, });
   },
 
 
-  render: function() {
+  render: function(): React.Element {
     return (
       <div className="ui container">
         <h1>Create a new class</h1><i className="plus icon"></i>

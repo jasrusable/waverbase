@@ -1,6 +1,6 @@
-require('../semantic/dist/semantic.js');
-require('../semantic/dist/semantic.css');
-require('./styles.css');
+// @flow
+
+require('./external-dependencies.jsx');
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -23,13 +23,13 @@ import Waverbase from './common/waverbase.jsx';
 import {isSignedIn, } from './util/auth.jsx';
 
 
-function requireSignedIn(nextState, replace) {
+function requireSignedIn(nextState: Object, replace: Function) {
   if (!isSignedIn()) {
     replace('/sign-in');
   }
 }
 
-function redirectIfSignedIn(nextState, replace) {
+function redirectIfSignedIn(nextState: Object, replace: Function) {
   if (isSignedIn()) {
     replace('/dashboard');
   }

@@ -4,7 +4,7 @@ import DashboardMenu from './menu.jsx';
 
 
 const Dashboard = React.createClass({
-  render: function() {
+  render: function(): React.Element {
     return (
       <div>
         <h1>Dashboard</h1>

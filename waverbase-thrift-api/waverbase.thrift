@@ -2,6 +2,10 @@ struct User {
   1: required string emailAddress
 }
 
+struct App {
+  1: required string name
+}
+
 struct Auth {
   1: required User user,
   2: required string token
@@ -16,6 +20,10 @@ struct FindOptions {
   1: optional Query query,
   2: optional i32 skip,
   3: optional i32 limit
+}
+
+struct ResultSet {
+  1: required list<string> results,
 }
 
 exception TokenNotFoundError {
@@ -64,11 +72,13 @@ service Waverbase {
   void changePassword(1: string auth_token, 2: string newPassword)
     throws (1: NotAuthenticatedError e, 2: NotAuthorisedError f)
 
-  void createNewApp(1:string auth_token, 2:string appName)
+  void createApp(1:string auth_token, 2:string name)
     throws (1: NotAuthenticatedError e, 2: NotAuthorisedError f)
 
-  string listApps(1:string auth_token)
+  list<App> listApps(1:string auth_token)
     throws (1: NotAuthenticatedError e, 2: NotAuthorisedError f)
+
+  ResultSet findDocumentsByAppAndClass(1: string app, 2: string class_, 3: string query)
 
   string listDatabases(1:string instanceUrl)
 

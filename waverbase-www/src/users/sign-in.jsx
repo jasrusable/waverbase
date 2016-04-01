@@ -4,11 +4,11 @@ import client from '../util/client.jsx';
 
 const SignIn = React.createClass({
   contextTypes: {
-    router: React.PropTypes.object
+    router: React.PropTypes.object,
   },
 
 
-  getInitialState: function() {
+  getInitialState: function(): Object {
     return {
       emailAddress: '',
       password: '',
@@ -16,27 +16,27 @@ const SignIn = React.createClass({
   },
 
 
-  _signIn: function() {
+  _signIn: function(): void {
     const router = this.context.router;
-    client.signIn(this.state.emailAddress, this.state.password).then(function(auth) {
+    client.signIn(this.state.emailAddress, this.state.password).then(function(auth: Auth) {
       console.log(`Successfully signed in, got auth ${JSON.stringify(auth)}`);
       localStorage.setItem('auth_token', auth.token);
       router.push('/dashboard');
-    }).catch(function (error) {
-      if (error instanceof NotAuthenticatedError) {
-        console.log(error.errorMessage);
+    }).catch(function (exception: Exception) {
+      if (exception instanceof NotAuthenticatedError) {
+        console.log(exception.errorMessage);
       } else {
-        throw error;
+        throw exception;
       }
     });
   },
 
-  _handleEmailAddress: function(e) {
-    this.setState({emailAddress: e.target.value});
+  _handleEmailAddress: function(e: SyntheticEvent): void {
+    this.setState({emailAddress: e.target.value, });
   },
 
-  _handlePassword: function(e) {
-    this.setState({password: e.target.value});
+  _handlePassword: function(e: SyntheticEvent): void {
+    this.setState({password: e.target.value, });
   },
 
   render: function(): React.Element {

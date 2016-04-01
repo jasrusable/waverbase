@@ -2,31 +2,31 @@ import React from 'react';
 import client from '../util/client.jsx';
 
 const ResetPassword = React.createClass({
-  getInitialState: function() {
+  getInitialState: function(): Object {
     return {
       emailAddress: '',
     }
   },
 
-  _handleEmailAddress: function(e) {
-    this.setState({emailAddress: e.target.value});
+  _handleEmailAddress: function(e: React.SytheticEvent): void {
+    this.setState({emailAddress: e.target.value, });
   },
 
 
-  _resetPassword: function() {
+  _resetPassword: function(): void {
     console.log(`Requesting password reset for email address ${this.state.emailAddress}`);
     client.resetPassword(this.state.emailAddress).then(function() {
       console.log('Successfully requested password reset.');
-      }).catch(function(error) {
-      if (error instanceof EmailAddressNotFoundError) {
+    }).catch(function(exception: Exception) {
+      if (exception instanceof EmailAddressNotFoundError) {
         console.log('No user with that email address exists.');
       } else {
-        throw error;
+        throw exception;
       }
     })
   },
 
-  render: function() {
+  render: function(): React.Element {
     return (
       <div className="ui container">
         <h1>Reset Password</h1>
@@ -39,7 +39,7 @@ const ResetPassword = React.createClass({
         </form>
       </div>
     )
-  }
+  },
 })
 
 module.exports = ResetPassword;

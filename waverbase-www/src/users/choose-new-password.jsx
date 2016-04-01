@@ -3,11 +3,11 @@ import client from '../util/client.jsx';
 
 const ChooseNewPassword = React.createClass({
   contextTypes: {
-    router: React.PropTypes.object
+    router: React.PropTypes.object,
   },
 
 
-  getInitialState: function() {
+  getInitialState: function(): Object {
     return {
       password: '',
       confirmationPassword: '',
@@ -15,33 +15,33 @@ const ChooseNewPassword = React.createClass({
   },
 
 
-  _chooseNewPassword: function() {
+  _chooseNewPassword: function(): void {
     const token = this.props.location.query.token;
     const router = this.context.router;
     client.chooseNewPassword(token, this.state.password).then(function() {
       console.log('Successfully chose new password.');
       router.push('/sign-in');
-    }).catch(function (error) {
-      if (error instanceof TokenNotFoundError) {
+    }).catch(function (exception: Exception) {
+      if (exception instanceof TokenNotFoundError) {
         console.log('No record of that token.');
       } else {
-        throw error;
+        throw exception;
       }
     });
   },
 
 
-  _handlePassword: function(e) {
-    this.setState({password: e.target.value});
+  _handlePassword: function(e: React.SyntheticEvent): void {
+    this.setState({password: e.target.value, });
   },
 
 
-  _handleConfirmationPassword: function(e) {
-    this.setState({confirmationPassword: e.target.value});
+  _handleConfirmationPassword: function(e: React.SyntheticEvent): void {
+    this.setState({confirmationPassword: e.target.value, });
   },
 
 
-  render: function() {
+  render: function(): React.Element {
     return (
       <div className="ui container">
         <h1>Choose new password</h1>
