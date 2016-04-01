@@ -4,11 +4,6 @@ AppService_thrift = thriftpy.load('app.thrift', module_name='AppService_thrift')
 
 from pykube.config import KubeConfig
 from pykube.http import HTTPClient
-from pykube.objects import Pod
-
-import operator
-import re
-import os
 
 def get_app_service():
     return thriftpy.rpc.make_client(
@@ -42,19 +37,3 @@ def get_mongo_pods(k8s, app_name, creator_name):
     if not ready_pods:
         raise Exception('Empty pod list. That is weird')
     return ready_pods
-
-# FOR DEV
-def get_mongo_pods(*args):
-    base = 27018
-    num = 3
-    return [
-        Pod(None, {
-            'metadata': {
-                'labels': {
-                    'external_ip': '127.0.0.1:%d' % p
-                }
-            }
-        }
-        )
-        for p in range(base, base+num)
-    ]
