@@ -50,6 +50,7 @@ COPY docker-entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
 COPY mongod.conf /mongod.conf
+COPY mongo-keyfile /mongo-keyfile
 
 EXPOSE 27017
-CMD ["mongod"]
+CMD ["mongod", "--keyFile", "/mongo-keyfile"]
