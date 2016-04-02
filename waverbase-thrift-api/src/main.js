@@ -9,7 +9,7 @@ import Waverbase from '../gen-nodejs/Waverbase.js';
 import EmailSender from '../gen-nodejs/EmailSender.js';
 import promisify from 'es6-promisify';
 import hat from 'hat';
-import { ResultSet, User, Auth, TokenNotFoundError, DuplicateUsernameError, SignUpValidationError, NotAuthenticatedError, EmailAddressNotFoundError} from '../gen-nodejs/waverbase_types.js';
+import { App, ResultSet, User, Auth, TokenNotFoundError, DuplicateUsernameError, SignUpValidationError, NotAuthenticatedError, EmailAddressNotFoundError} from '../gen-nodejs/waverbase_types.js';
 
 const connection = createConnection('email-sender', 9098, {
   transport: TBufferedTransport(),
@@ -117,7 +117,6 @@ const waverbaseHandler = {
 
     const user = new User({emailAddress: emailAddress});
     const passwordHash = yield promisify(passwordUtil(password).hash)();
-    console.log(emailAddress, password, passwordHash);
 
     const userDocument = {
       isVerified: false,
@@ -285,6 +284,9 @@ const waverbaseHandler = {
 
 
   createApp: requiresAuth(wrap(function*(user, name) {
+    winston.info(
+      `Creating new app for ${user.emailAddress} with appName ${appName}`
+    );
     const db = yield MongoClient.connect(URL);
     const apps = db.collection('apps');
     const users = db.collection('users');
@@ -300,7 +302,9 @@ const waverbaseHandler = {
         }
       }
     );
+    return new App({name: appDocument.name});
   })),
+
 
   listApps: wrap(requiresAuth(function*(user) {
     const db = yield MongoClient.connect(URL);
@@ -314,6 +318,39 @@ const waverbaseHandler = {
 
     return appDocuments;
   })),
+
+  listApps: wrap(requiresAuth(function* (user) {
+    const db = yield MongoClient.connect(URL);
+    const apps = db.collection('apps');
+
+    const appDocuments = yield apps.find({_id: {$in: (user.apps || [])}}).toArray();
+    return appDocuments.map((appDocument) => new App({name: appDocument.name}));
+  })),
+
+
+  deleteApp: wrap(requiresAuth(function* (user, appName) {
+    const db = yield MongoClient.connect(URL);
+    const apps = db.collection('apps');
+    const users = db.collection('users');
+    winston.info(`User ${user.emailAddress} deleting ${appName}`);
+
+    //TODO: Only remove apps that /this/ user owns with this app name.
+    const appDocument = yield apps.findOne({name: appName});
+
+    yield apps.remove({_id: appDocument._id});
+    yield users.update(
+      {
+      _id: user._id,
+      },
+      {
+        $pull: {
+          apps: appDocument._id,
+        },
+      }
+    );
+  })),
+
+>>>>>>> Stashed changes
 
   listDatabases: wrap(function*(instanceUrl) {
     const db = yield MongoClient.connect(instanceUrl);

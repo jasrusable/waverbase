@@ -4,9 +4,12 @@
 import React from 'react';
 import {Link, } from 'react-router';
 import client from '../util/client.jsx';
+import Formsy from 'formsy-react';
+import Input from '../util/input.jsx';
+import Form from '../util/form.jsx';
 
 const SignUp = React.createClass({
-  contextTypes: {
+    contextTypes: {
     router: React.PropTypes.object,
   },
 
@@ -19,7 +22,7 @@ const SignUp = React.createClass({
   },
 
 
-  _signUp: function(): void {
+  _handleSignUp: function(): void {
     const router = this.context.router;
     client.signUp(this.state.emailAddress, this.state.password)
     .then(function(auth: Object) {
@@ -49,7 +52,7 @@ const SignUp = React.createClass({
     return (
       <div className="ui container">
         <h1>Sign Up</h1>
-        <form className="ui form">
+        <form className="ui form" onSubmit={this._handleSignUp} submitChildren="Sign Up" submittingChildren="Signing up" submitting={false}>
           <div className="field">
             <label>Email address</label>
             <input value={this.state.emailAddress} onChange={this._handleEmailAddress} />
@@ -71,5 +74,6 @@ const SignUp = React.createClass({
     );
   },
 })
+
 
 module.exports = SignUp

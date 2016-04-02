@@ -51,8 +51,8 @@ USER root
 
 RUN npm install -g pm2
 
-COPY ./ /home/waverbase/waverbase
-RUN chown -R waverbase:waverbase /home/waverbase/waverbase
+COPY ./email-sender /home/waverbase/waverbase/email-sender
+RUN chown -R waverbase:waverbase /home/waverbase/waverbase/email-sender
 
 # Development or production thrift api server.
 EXPOSE 9099

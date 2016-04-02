@@ -4,3 +4,6 @@
 [submodule "thrift"]
 	path = thrift
 	url = git@github.com:Waverbase/thrift.git
+[submodule "formsy-react-components"]
+	path = formsy-react-components
+	url = git@github.com:twisty/formsy-react-components.git

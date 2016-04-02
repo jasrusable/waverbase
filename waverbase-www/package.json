@@ -19,6 +19,7 @@
     "classnames": "^2.2.3",
     "css-loader": "^0.23.1",
     "file-loader": "^0.8.5",
+    "formsy-react": "^0.17.0",
     "html-webpack-plugin": "^2.10.0",
     "jquery": "^2.2.1",
     "react": "^0.14.7",

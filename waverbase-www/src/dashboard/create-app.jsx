@@ -1,20 +1,29 @@
 import React from 'react';
 import client from '../util/client.jsx';
-import {withAuth, } from '../util/auth.jsx';
+import { withAuth, } from '../util/auth.jsx';
 
 const CreateNewApp = React.createClass({
+  contextTypes: {
+    router: React.PropTypes.object,
+  },
+
+
   getInitialState: function(): Object {
     return {
       appName: '',
     };
   },
 
-  _createApp: function() {
-    withAuth(client.createNewApp)(this.state.appName);
+  _createApp: function(): void {
+    withAuth(client.createApp)(this.state.appName).then((app: App) => {
+      console.log(`Successfully created new app ${JSON.stringify(app)}`);
+      this.props.onUpdateApps();
+      this.context.router.push(`/dashboard/apps/${app.name}/`);
+    });
   },
 
-  _handleAppName: function(event: any): void {
-    this.setState({appName: event.target.value, });
+  _handleAppName: function(e: any) {
+    this.setState({appName: e.target.value, });
   },
 
   render: function(): React.Element {
@@ -30,11 +39,13 @@ const CreateNewApp = React.createClass({
               onChange={this._handleAppName}
             />
           </div>
-          <button className="ui button" type="submit" onClick={this._createApp}>Create app</button>
+          <button className="ui button" type="submit" onClick={this._createApp}>
+            Create app
+          </button>
         </form>
       </div>
-    );
-  },
-});
+      );
+    },
+  });
 
 module.exports = CreateNewApp;

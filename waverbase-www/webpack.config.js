@@ -40,11 +40,12 @@ module.exports = {
 			thrift: path.join(__dirname, './thrift.js'),
 			// Hack because webpack somehow can't resolve jquery.
 			jquery: path.join(__dirname, './node_modules/jquery'),
-		}
+			'formsy-react-components': path.join(__dirname, '../formsy-react-components'),
+		},
 	},
 	resolveLoader: {
 	 root: path.join(__dirname, './node_modules'),
-	 modulesDirectories: ['../'],
+	 modulesDirectories: ['../', ],
 	},
 	plugins: [
 		new HtmlWebpackPlugin({
@@ -55,6 +56,6 @@ module.exports = {
 		new webpack.ProvidePlugin({
 			jQuery: 'jquery',
 			$: 'jquery',
-		})
-	]
+		}),
+	],
 };

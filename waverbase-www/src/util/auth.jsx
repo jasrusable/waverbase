@@ -15,8 +15,7 @@ function withAuth(f: Function): Function {
   };
 }
 
-
 module.exports = {
-    isSignedIn: isSignedIn,
-    withAuth: withAuth,
-}
+  isSignedIn,
+  withAuth,
+};

@@ -16,9 +16,11 @@ import ContactUs from './landing/contact-us.jsx';
 import TermsAndConditions from './landing/terms-and-conditions.jsx';
 import Landing from './landing/landing.jsx';
 import Dashboard from './dashboard/dashboard.jsx';
+import App from './dashboard/app.jsx';
+import DeleteApp from './dashboard/delete-app.jsx';
 import ClassBrowser from './dashboard/class-browser.jsx';
-import CreateNewClass from './dashboard/create-new-class.jsx';
-import CreateNewApp from './dashboard/create-new-app.jsx';
+import CreateNewClass from './dashboard/create-class.jsx';
+import CreateNewApp from './dashboard/create-app.jsx';
 import Waverbase from './common/waverbase.jsx';
 import {isSignedIn, } from './util/auth.jsx';
 
@@ -47,9 +49,12 @@ const routes =
       <Route path="verify-account" component={VerifyAccount} />
       <Route path="dashboard" component={Dashboard} onEnter={requireSignedIn}>
         <Route path="change-password" component={ChangePassword} />
-        <Route path="create-new-class" component={CreateNewClass} />
-        <Route path="class-browser/:className" component={ClassBrowser} />
-        <Route path="create-new-app" component={CreateNewApp} />
+        <Route path="create-app" component={CreateNewApp} />
+        <Route path="apps/:appName">
+          <Route path="create-class" component={CreateNewClass} />
+          <Route path="class-browser/:className" component={ClassBrowser} />
+          <Route path="delete" component={DeleteApp} />
+        </Route>
       </Route>
       <Route path="contact-us" component={ContactUs} />
       <Route path="terms-and-conditions" component={TermsAndConditions} />

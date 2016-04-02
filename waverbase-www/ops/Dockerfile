@@ -48,8 +48,11 @@ USER waverbase
 RUN npm install
 USER root
 
-COPY ./ /home/waverbase/waverbase
-RUN chown -R waverbase:waverbase /home/waverbase/waverbase
+COPY ./thrift-loader /home/waverbase/waverbase/thrift-loader
+RUN chown -R waverbase:waverbase /home/waverbase/waverbase/waverbase-www
+RUN chown -R waverbase:waverbase /home/waverbase/waverbase/waverbase-www
+COPY ./waverbase-www /home/waverbase/waverbase/waverbase-www
+RUN chown -R waverbase:waverbase /home/waverbase/waverbase/waverbase-www
 USER waverbase
 
 # Development or production http server.

@@ -72,10 +72,13 @@ service Waverbase {
   void changePassword(1: string auth_token, 2: string newPassword)
     throws (1: NotAuthenticatedError e, 2: NotAuthorisedError f)
 
-  void createApp(1:string auth_token, 2:string name)
+  App createApp(1:string auth_token, 2: string appName)
     throws (1: NotAuthenticatedError e, 2: NotAuthorisedError f)
 
   list<App> listApps(1:string auth_token)
+    throws (1: NotAuthenticatedError e, 2: NotAuthorisedError f)
+
+  void deleteApp(1: string auth_token, 2: string appName)
     throws (1: NotAuthenticatedError e, 2: NotAuthorisedError f)
 
   ResultSet findDocumentsByAppAndClass(1: string app, 2: string class_, 3: string query)
