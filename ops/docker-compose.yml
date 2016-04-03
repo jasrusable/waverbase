@@ -7,7 +7,6 @@ services:
     volumes:
       - ../waverbase-www/src:/home/waverbase/waverbase/waverbase-www/src
       - ../waverbase-www/webpack.config.js:/home/waverbase/waverbase/waverbase-www/webpack.config.js
-      - ../waverbase-thrift-api/build/backend.js:/home/waverbase/waverbase/waverbase-thrift-api/build/backend.js
       - ../waverbase-thrift-api/waverbase.thrift:/home/waverbase/waverbase/waverbase-thrift-api/waverbase.thrift
     ports:
       - "8080:8080"
@@ -18,9 +17,10 @@ services:
       context: ../
       dockerfile: ./waverbase-thrift-api/ops/Dockerfile
     volumes:
-      - ../waverbase-thrift-api/ops/processes.json:/home/waverbase/waverbase/waverbase-thrift-api/ops/processes.json
+      - ../waverbase-thrift-api/ops:/home/waverbase/waverbase/waverbase-thrift-api/ops
       - ../waverbase-thrift-api/src:/home/waverbase/waverbase/waverbase-thrift-api/src
       - ../waverbase-thrift-api/waverbase.thrift:/home/waverbase/waverbase/waverbase-thrift-api/waverbase.thrift
+      - ../waverbase-thrift-api/webpack.config.js:/home/waverbase/waverbase/waverbase-thrift-api/webpack.config.js
     ports:
       - "9099:9099"
     depends_on:

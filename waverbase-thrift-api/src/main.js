@@ -11,6 +11,7 @@ import promisify from 'es6-promisify';
 import hat from 'hat';
 import { App, ResultSet, User, Auth, TokenNotFoundError, DuplicateUsernameError, SignUpValidationError, NotAuthenticatedError, EmailAddressNotFoundError} from '../gen-nodejs/waverbase_types.js';
 
+
 const connection = createConnection('email-sender', 9098, {
   transport: TBufferedTransport(),
   protocol: TBinaryProtocol(),
@@ -305,20 +306,6 @@ const waverbaseHandler = {
     return new App({name: appDocument.name});
   })),
 
-
-  listApps: wrap(requiresAuth(function*(user) {
-    const db = yield MongoClient.connect(URL);
-    const apps = db.collection('apps');
-
-    const appDocuments = yield apps.find({
-      _id: {
-        $in: user.apps || [],
-      },
-    }).toArray()
-
-    return appDocuments;
-  })),
-
   listApps: wrap(requiresAuth(function* (user) {
     const db = yield MongoClient.connect(URL);
     const apps = db.collection('apps');
@@ -349,8 +336,6 @@ const waverbaseHandler = {
       }
     );
   })),
-
->>>>>>> Stashed changes
 
   listDatabases: wrap(function*(instanceUrl) {
     const db = yield MongoClient.connect(instanceUrl);
