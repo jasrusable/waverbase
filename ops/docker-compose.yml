@@ -1,37 +1,42 @@
 version: '2'
 services:
-  waverbase-www:
+  website-service:
     build:
       context: ../
-      dockerfile: ./waverbase-www/ops/Dockerfile
+      dockerfile: ./website-service/ops/Dockerfile
+    container_name: 'website-service'
     volumes:
-      - ../waverbase-www/src:/home/waverbase/waverbase/waverbase-www/src
-      - ../waverbase-www/webpack.config.js:/home/waverbase/waverbase/waverbase-www/webpack.config.js
-      - ../waverbase-thrift-api/waverbase.thrift:/home/waverbase/waverbase/waverbase-thrift-api/waverbase.thrift
+      - ../website-service/images:/home/waverbase/waverbase/website-service/images
+      - ../website-service/semantic:/home/waverbase/waverbase/website-service/semantic
+      - ../website-service/src:/home/waverbase/waverbase/website-service/src
+      - ../website-service/thrift.js:/home/waverbase/waverbase/website-service/thrift.js
+      - ../website-service/webpack.config.js:/home/waverbase/waverbase/website-service/webpack.config.js
+
+      - ../public-api-service/public-api.thrift:/home/waverbase/waverbase/public-api-service/public-api.thrift
     ports:
       - "8080:8080"
     depends_on:
-      - waverbase-thrift-api
-  waverbase-thrift-api:
+      - public-api-service
+  public-api-service:
     build:
       context: ../
-      dockerfile: ./waverbase-thrift-api/ops/Dockerfile
+      dockerfile: ./public-api-service/ops/Dockerfile
     volumes:
-      - ../waverbase-thrift-api/ops:/home/waverbase/waverbase/waverbase-thrift-api/ops
-      - ../waverbase-thrift-api/src:/home/waverbase/waverbase/waverbase-thrift-api/src
-      - ../waverbase-thrift-api/waverbase.thrift:/home/waverbase/waverbase/waverbase-thrift-api/waverbase.thrift
-      - ../waverbase-thrift-api/webpack.config.js:/home/waverbase/waverbase/waverbase-thrift-api/webpack.config.js
+      - ../public-api-service/ops:/home/waverbase/waverbase/public-api-service/ops
+      - ../public-api-service/src:/home/waverbase/waverbase/public-api-service/src
+      - ../public-api-service/public-api.thrift:/home/waverbase/waverbase/public-api-service/public-api.thrift
+      - ../public-api-service/webpack.config.js:/home/waverbase/waverbase/public-api-service/webpack.config.js
     ports:
       - "9099:9099"
     depends_on:
       - mongo-dev
-      - email-sender
-  email-sender:
+      - email-sender-service
+  email-sender-service:
     build:
       context: ../
-      dockerfile: ./email-sender/ops/Dockerfile
+      dockerfile: ./email-sender-service/ops/Dockerfile
     volumes:
-      - ../email-sender/src:/home/waverbase/waverbase/email-sender/src
-      - ../email-sender/email-sender.thrift:/home/waverbase/waverbase/email-sender/email-sender.thrift
+      - ../email-sender-service/src:/home/waverbase/waverbase/email-sender-service/src
+      - ../email-sender-service/email-sender.thrift:/home/waverbase/waverbase/email-sender-service/email-sender.thrift
   mongo-dev:
     image: mongo

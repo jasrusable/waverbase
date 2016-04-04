@@ -1,9 +1,0 @@
-[{
-  "script": "webpack",
-  "args": ["--colors", "--watch"]
-}, {
-  "script": "./ops/run-backend.sh",
-  "watch": "./build/backend.js"
-}, {
-  "script": "./ops/build-thrift.sh",
-}]

@@ -1,0 +1,13 @@
+[{
+  "script": "webpack",
+  "args": ["--colors", "--watch"]
+}, {
+  "script": "./ops/run-backend.sh",
+  "watch": "./build/backend.js"
+}, {
+  "script": "./ops/build-public-api-thrift.sh",
+  "watch": "public-api.thrift"
+}, {
+  "script": "./ops/build-email-sender-thrift.sh",
+  "watch": "../email-sender/email-sender.thrift"
+}]

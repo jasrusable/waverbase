@@ -3,8 +3,8 @@ var exec = require('child_process').exec;
 var loaderUtils = require('loader-utils');
 
 buildClientLoader = function(service) {
-  var requireService = "require('../waverbase-www/gen-js/" + service + ".js')";
-  var requireTypes = "require('../waverbase-www/gen-js/"
+  var requireService = "require('../website-service/gen-js/" + service + ".js')";
+  var requireTypes = "require('../website-service/gen-js/"
     + service.toLowerCase() + "_types.js')";
 
   return "module.exports = jQuery.extend("
