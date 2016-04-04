@@ -7,4 +7,5 @@ RUN pip install -r requirements.txt
 
 COPY src /sidecar/src
 
-CMD ["python", "src/sidecar.py"]
+WORKDIR /sidecar/src
+CMD ["python", "sidecar.py"]
