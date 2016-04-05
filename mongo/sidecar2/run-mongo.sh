@@ -1,10 +1,10 @@
 #!/bin/bash
-kill $(ps a |grep mongod | grep port|cut -d ' ' -f 2) 2&> /dev/null
+ps a |grep mongod | grep port|cut -d ' ' -f 1 | xargs kill
 
 set -e
 
 function ctrl_c {
-    kill $(ps a |grep mongod | grep port|cut -d ' ' -f 2)
+    ps a |grep mongod | grep port|cut -d ' ' -f 1 | xargs kill
 }
 
 trap ctrl_c INT

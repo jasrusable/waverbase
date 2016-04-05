@@ -17,7 +17,18 @@ import thriftpy
 import thriftpy.rpc
 AppService_thrift = thriftpy.load('app.thrift', module_name='AppService_thrift')
 
+from oauth2client.client import GoogleCredentials
+from googleapiclient import discovery
+from googleapiclient.errors import HttpError
+
+GCLOUD_ZONE = 'europe-west1-b'
+GCLOUD_REGION = 'europe-west1'
+GCLOUD_PROJECT = 'api-project-1075799951054'
+
+google_credentials = GoogleCredentials.get_application_default()
+
 logging.basicConfig(level=logging.DEBUG, format='%(relativeCreated)6d %(threadName)s:   %(message)s')
+#logging.basicConfig(level=logging.DEBUG)
 
 IP_RE = R'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:(\d+))?$'
 
@@ -25,7 +36,10 @@ def ip_with_port(ip, if_not_port=27017):
     match = re.match(IP_RE, ip)
     if not match:
         raise Exception()
-    return ip
+    host, port = match.group(1), match.group(3)
+    if not port:
+        port = if_not_port
+    return '%s:%s' % (host, port)
     
 def get_app_service():
     return thriftpy.rpc.make_client(
@@ -39,19 +53,20 @@ class ReplicaManager(threading.Thread):
             self, 
             app_name,
             creator_name,
-            external_ip,
+            hostname,
             k8s,
-            local_mongo_server_conn
+            local_mongo_server_conn,
+            external_ip
             ):
         threading.Thread.__init__(self, name='ReplicaManager %s' % local_mongo_server_conn)
         
-        logging.debug('ReplicaManager created for %s:%s at IP %s with mongo %s', app_name, creator_name, external_ip, local_mongo_server_conn)
         self.local_pod_ip = socket.gethostbyname(socket.getfqdn())
-        logging.info('Local pod IP is %s', self.local_pod_ip)
+        #logging.info('Local pod IP is %s', self.local_pod_ip)
         self.k8s = k8s
         self.local_mongo_server_conn = local_mongo_server_conn
         self.app_name = app_name
         self.creator_name = creator_name
+        self.hostname = hostname
         self.external_ip = external_ip
 
     def get_mongo_pods(self):
@@ -63,7 +78,6 @@ class ReplicaManager(threading.Thread):
             }
         )
 
-        print(pods)
         return pods
         ready_pods = list(filter(operator.attrgetter("ready"), pods))
 
@@ -71,7 +85,18 @@ class ReplicaManager(threading.Thread):
             raise Exception('Empty pod list. That is weird')
         return ready_pods
 
+    def wait_until_started(self, mongo=None):
+        ''' if we are in a replica set and the RS is fully initialised return True '''
+        while True:
+            status = self.local_mongo.admin.command('replSetGetStatus')
+            for member in status['members']:
+                if member['stateStr'] not in ('PRIMARY', 'SECONDARY'):
+                    logging.debug('Member in state %s. Waiting. ', member['stateStr'])
+                    continue
+            break
+
     def in_replica_set(self, mongo=None):
+        ''' if we are in a replica set and the RS is fully initialised return True '''
         if mongo is None:
             mongo = self.local_mongo
 
@@ -88,7 +113,6 @@ class ReplicaManager(threading.Thread):
             return re.sub(r'[^0-9]', '', ip)
 
         minimum = sorted([p.obj['status']['podIP'] for p in self.pods], key=key)[0]
-        print(minimum, self.local_pod_ip)
         return minimum == self.local_pod_ip
 
     def create_replica_set(self):
@@ -99,6 +123,18 @@ class ReplicaManager(threading.Thread):
             'members': [{'_id': 0, 'host': ip_with_port(self.local_pod_ip)}]
         })
         time.sleep(3)
+
+    def update_dns_record(self):
+        dns = discovery.build('dns', 'v1', credentials=google_credentials)
+        changes = self.dns.changes()
+        changes.create(
+            project=GCLOUD_PROJECT,
+            managedZone='waverbase',
+            body={
+                "additions": [
+                '%s. A %s' % (host, self.local_pod_ip)
+                ]
+            })
 
     def update_replica_members(self):
         self.pods = self.get_mongo_pods()
@@ -136,13 +172,14 @@ class ReplicaManager(threading.Thread):
                                        
     def wait_until_in_replica(self):
         while not self.in_replica_set():
-            time.sleep(1)
+            time.sleep(2)
         
 
     def ensure_in_replica_set(self):
         wait_for_replica = False
         
         if not self.in_replica_set():
+            logging.debug('Not in replica set')
             # check other mongo instances to see if they are in a replica set
             '''for pod in self.pods:
                 pod_mongo = pymongo.MongoClient(pod.obj['status']['podIP'])
@@ -158,11 +195,12 @@ class ReplicaManager(threading.Thread):
                 self.create_replica_set()
             else:
                 logging.info('We are not primary. Waiting')
-                wait_for_replica = True
+                self.wait_until_in_replica()
 
-        # wait until we are added to other mongos replica
-        if wait_for_replica:
-            self.wait_until_in_replica()
+            from pprint import pprint
+            print(pprint(self.local_mongo.admin.command('replSetGetStatus'), indent=2))
+
+        self.wait_until_started()
         logging.debug('We are in a replica. Yaay')
 
     @property
@@ -203,7 +241,17 @@ class ReplicaManager(threading.Thread):
 
 
         logging.debug('Have password. Attempting to auth')
-        self.local_mongo.admin.authenticate('waverbase', mongo_password)
+        for i in range(5):
+            try:
+                self.local_mongo.admin.authenticate('waverbase', mongo_password)
+                break
+            except pymongo.errors.OperationFailure as e:
+                print(e.code)
+                logging.debug('Auth failed. Assume that we have not properly synced yet')
+                time.sleep(2)
+        else:
+            raise e
+                
         logging.debug('Authenticated to mongo')
 
     def run(self):
@@ -224,8 +272,9 @@ class ReplicaManager(threading.Thread):
             if self.is_master:
                 self.update_replica_members()
             else:
-                logging.debug('We are not master but lets wait and see if we become master')
-            time.sleep(5)
+                #logging.debug('We are not master but lets wait and see if we become master')
+                pass
+            time.sleep(10)
 
 
 def test():
@@ -240,7 +289,7 @@ def test():
             Pod(None, {
                 'metadata': {
                     'labels': {
-                        'external_ip': '127.0.0.1:%d' % p
+                        'hostname': '127.0.0.1:%d' % p
                     }
                 },
                 'status': {
@@ -256,9 +305,10 @@ def test():
         replica_manager = ReplicaManager(
             app_name='testapp',
             creator_name='testcreator',
-            external_ip='127.0.0.1:%d' % p,
+            hostname='127.0.0.1:%d' % p,
             k8s=k8s,
-            local_mongo_server_conn = 'mongodb://127.0.0.1:%d' % p
+            local_mongo_server_conn = 'mongodb://127.0.0.1:%d' % p,
+            external_ip='127.0.0.1:%d' % p
         )
         replica_manager.local_pod_ip = '127.0.0.1:%d' % p
         replica_manager.get_mongo_pods = get_mongo_pods
@@ -268,13 +318,15 @@ def test():
 def run():
     k8s = HTTPClient(KubeConfig.from_service_account())
     mongo_connection_string = os.environ.get('MONGO_CONNECTION_STRING', 'mongodb://127.0.0.1')
+    logging.info('Mongo server %s', mongo_connection_string)
     
     replica_manager = ReplicaManager(
         app_name=os.environ['APP_NAME'],
         creator_name=os.environ['CREATOR_NAME'],
-        external_ip=os.environ['EXTERNAL_IP'],
+        hostname=os.environ['MONGO_HOSTNAME'],
         k8s=k8s,
         local_mongo_server_conn = mongo_connection_string,
+        external_ip=os.environ['EXTERNAL_IP']
     )
     replica_manager.start()
 
