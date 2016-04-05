@@ -8,12 +8,14 @@ import logging
 GCLOUD_ZONE = 'europe-west1-b'
 GCLOUD_REGION = 'europe-west1'
 GCLOUD_PROJECT = 'api-project-1075799951054'
+GCLOUD_DNS_ZONE = 'waverbase'
 START_DISK_SIZE = 50
 
 class Gcloud:
   def __init__(self):
     credentials = GoogleCredentials.get_application_default()
     self.compute = discovery.build('compute', 'v1', credentials=credentials)
+    self.dns = discovery.build('dns', 'v1', credentials=credentials)
 
   def wait_for_region_operation(self, project, region, operation):
     logging.debug('Waiting for operation to finish...')
@@ -30,6 +32,47 @@ class Gcloud:
       return result
 
       time.sleep(1)
+
+  def add_dns_record(self, host, ip):
+    logging.debug('Creating DNS A record for %s' % host)
+    changes = self.dns.changes()
+    changes.create(
+      project=GCLOUD_PROJECT,
+      managedZone='waverbase',
+      body={
+        "kind": "dns#change",
+        "additions": [
+          {
+            "rrdatas": [ip],
+            "type":"A",
+            "name": host+'.',
+            "ttl": 300,
+            "kind": "dns#resourceRecordSet"
+          }
+        ]
+      }).execute()
+
+  def delete_dns_record(self, host):
+    logging.debug('Deleting DNS record')
+    recordsResource = self.dns.resourceRecordSets()
+    records = recordsResource.list(
+      project=GCLOUD_PROJECT,
+      managedZone=GCLOUD_DNS_ZONE,
+      name='%s.' % host,
+      type='A'
+      ).execute()['rrsets']
+    print(records)
+    if records:
+        changesResource = self.dns.changes()
+        changesResource.create(
+        project=GCLOUD_PROJECT,
+        managedZone=GCLOUD_DNS_ZONE,
+        body={
+            "kind": "dns#change",
+            "deletions": records 
+        }).execute()
+    else:
+      logging.debug('No records to remove')
 
   def delete_ip(self, name):
     try:

@@ -71,16 +71,21 @@ class MongoReplica(object):
   def add(self, replica, disk_size=20):
     ip_address = gcloud.reserve_ip(self.ip_name(replica))
 
+    args = dict(
+      hostname='mongo-%s-%s-%d' % (self.creator, self.app, replica),
+      size=replica,
+      ip=ip_address,
+      **self.args)
+
+    gcloud.add_dns_record(
+      self.host_name(replica),
+      ip_address)
+
     # create the disk
     gcloud.reserve_disk(
       name=self.disk_name(replica),
       size=disk_size
     )
-
-    args = dict(
-      size=replica,
-      ip=ip_address,
-      **self.args)
 
     # create the service
     self.create_kube_from_template(
@@ -118,6 +123,7 @@ class MongoReplica(object):
     # so we just wait a bit
     # time.sleep(3)
 
+    gcloud.delete_dns_record(self.host_name(replica_num))
     gcloud.delete_ip(self.ip_name(replica_num))
     gcloud.delete_disk(self.disk_name(replica_num))
 
@@ -132,3 +138,6 @@ class MongoReplica(object):
 
   def service_name(self, replica):
     return 'mongo-%(app)s-%(replica)d' % dict(replica=replica, **self.args)
+
+  def host_name(self, replica):
+      return '%(app)s-%(replica)d.db.waverbase.com' % dict(replica=replica, **self.args)

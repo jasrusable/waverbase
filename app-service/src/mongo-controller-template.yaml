@@ -50,6 +50,8 @@ spec:
               value: "%(app)s"
             - name: CREATOR_NAME
               value: "%(creator)s"
+            - name: MONGO_HOSTNAME
+              value: "%(hostname)s"
       volumes:
         - name: mongo-persistent-storage
           gcePersistentDisk:

@@ -49,10 +49,11 @@ class AppHandler(object):
     db = mongo_connection()
     mongo = MongoReplica(creator, app)
     mongo.delete()
-    db.apps.delete_one({
+    deleted = db.apps.delete_one({
       'creator': creator,
-      'app': app
+      'name': app
     })
+    print(deleted.deleted_count)
     return True
 
   def get_app(self, app, creator):
@@ -140,5 +141,5 @@ if __name__ == '__main__':
   pfactory = TBinaryProtocol.TBinaryProtocolFactory()
 
   logging.info('Listening on %d' % port)
-  server = TServer.TSimpleServer(processor, transport, tfactory, pfactory)
+  server = TServer.TThreadedServer(processor, transport, tfactory, pfactory)
   server.serve()
