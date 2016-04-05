@@ -51,6 +51,8 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 COPY mongod.conf /mongod.conf
 COPY mongo-keyfile /mongo-keyfile
+RUN chmod 0600 /mongo-keyfile
+RUN chown mongodb:mongodb /mongo-keyfile
 
 EXPOSE 27017
-CMD ["mongod", "--keyFile", "/mongo-keyfile"]
+CMD ["mongod"]
