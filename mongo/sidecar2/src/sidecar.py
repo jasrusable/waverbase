@@ -24,6 +24,7 @@ from googleapiclient.errors import HttpError
 GCLOUD_ZONE = 'europe-west1-b'
 GCLOUD_REGION = 'europe-west1'
 GCLOUD_PROJECT = 'api-project-1075799951054'
+GCLOUD_DNS_ZONE = 'waverbase'
 
 google_credentials = GoogleCredentials.get_application_default()
 
@@ -120,28 +121,54 @@ class ReplicaManager(threading.Thread):
         self.local_mongo.admin.command('replSetInitiate', {
             '_id': 'rs0',
             'version': 1,
-            'members': [{'_id': 0, 'host': ip_with_port(self.local_pod_ip)}]
+            'members': [{'_id': 0, 'host': self.hostname}]
         })
         time.sleep(3)
 
     def update_dns_record(self):
         dns = discovery.build('dns', 'v1', credentials=google_credentials)
+        recordsResource = dns.resourceRecordSets()
+
+        dns_record = recordsResource.list(
+            project=GCLOUD_PROJECT,
+            managedZone=GCLOUD_DNS_ZONE,
+            name='%s.' % self.hostname,
+            type='A'
+        ).execute()['rrsets']
+
+        assert len(dns_record) == 1
+        dns_record = dns_record[0]
+
+        # check if our IP is in the dns record. If it is we have nothing to do
+        if self.local_pod_ip in dns_record['rrdatas']:
+            return True
+
+        
         changes = self.dns.changes()
         changes.create(
             project=GCLOUD_PROJECT,
             managedZone='waverbase',
             body={
-                "additions": [
-                '%s. A %s' % (host, self.local_pod_ip)
-                ]
+                "deletions": [
+                    dns_record
+                ],
+                "additions": [{
+                    "rrdatas": [
+                        self.external_ip,
+                        self.local_pod_ip
+                    ],
+                    "type": "A",
+                    "name": self.hostname+'.',
+                    "ttl": 10
+                }]
             })
 
     def update_replica_members(self):
         self.pods = self.get_mongo_pods()
         config = self.local_mongo.admin.command('replSetGetConfig')['config']
 
-        mongo_ips = set(ip_with_port(m['host']) for m in config['members'])
-        pod_ips = set(ip_with_port(p.obj['status']['podIP']) for p in self.pods)
+        mongo_ips = set(m['host'] for m in config['members'])
+        pod_ips = set(p.obj['metadata']['labels']['hostname'] for p in self.pods)
 
         to_add = pod_ips - mongo_ips
         to_remove = mongo_ips - pod_ips
@@ -182,10 +209,10 @@ class ReplicaManager(threading.Thread):
             logging.debug('Not in replica set')
             # check other mongo instances to see if they are in a replica set
             '''for pod in self.pods:
-                pod_mongo = pymongo.MongoClient(pod.obj['status']['podIP'])
+                pod_mongo = pymongo.MongoClient(pod.obj['metadata']['labels']['hostname'])
                 if self.in_replica_set(pod_mongo):
                     wait_for_replica = True
-                    logging.info('Pod %s is already in a replica set. Assuming we will be added to it', pod.obj['status']['podIP'])
+                    logging.info('Pod %s is already in a replica set. Assuming we will be added to it', pod.obj['metadata']['labels']['hostname'])
                     break
                 pod_mongo.close()
                 pod_mongo = None'''
@@ -255,12 +282,13 @@ class ReplicaManager(threading.Thread):
         logging.debug('Authenticated to mongo')
 
     def run(self):
+        self.update_dns_record()
         self.local_mongo = pymongo.MongoClient(self.local_mongo_server_conn)
         self.app_service = get_app_service()
         self.pods = self.get_mongo_pods()
 
         if self.is_primary():
-            logging.info('We are PRIMARY')
+            logging.info('PRIMARY')
         else:
             logging.info('SECONDARY')
 
