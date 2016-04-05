@@ -47,7 +47,7 @@ class ReplicaManager(threading.Thread):
         
         logging.debug('ReplicaManager created for %s:%s at IP %s with mongo %s', app_name, creator_name, external_ip, local_mongo_server_conn)
         self.local_pod_ip = socket.gethostbyname(socket.getfqdn())
-        #logging.info('Local pod IP is %s', self.local_pod_ip)
+        logging.info('Local pod IP is %s', self.local_pod_ip)
         self.k8s = k8s
         self.local_mongo_server_conn = local_mongo_server_conn
         self.app_name = app_name
@@ -210,6 +210,12 @@ class ReplicaManager(threading.Thread):
         self.local_mongo = pymongo.MongoClient(self.local_mongo_server_conn)
         self.app_service = get_app_service()
         self.pods = self.get_mongo_pods()
+
+        if self.is_primary():
+            logging.info('We are PRIMARY')
+        else:
+            logging.info('SECONDARY')
+
         self.ensure_in_replica_set()
 
         self.init_mongo_auth()
