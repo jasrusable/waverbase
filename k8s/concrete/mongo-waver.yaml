@@ -10,8 +10,8 @@ spec:
     spec:
       containers:
         - name: mongo-waver
-          #image: eu.gcr.io/api-project-1075799951054/mongo:latest
-          image: localhost:5000/mongo:latest
+          image: eu.gcr.io/api-project-1075799951054/mongo:latest
+          #image: localhost:5000/mongo:latest
           ports:
             - containerPort: 27017
           volumeMounts:
