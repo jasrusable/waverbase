@@ -64,4 +64,5 @@ spec:
         app: %(app)s
         creator: %(creator)s
         external_ip: %(ip)s
+        hostname: %(hostname)s
         environment: test

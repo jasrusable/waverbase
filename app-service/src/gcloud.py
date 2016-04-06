@@ -27,9 +27,9 @@ class Gcloud:
 
       if result['status'] == 'DONE':
         logging.debug("done.")
-      if 'error' in result:
-        raise Exception(result['error'])
-      return result
+        if 'error' in result:
+          raise Exception(result['error'])
+        return result
 
       time.sleep(1)
 
@@ -46,7 +46,7 @@ class Gcloud:
             "rrdatas": [ip],
             "type":"A",
             "name": host+'.',
-            "ttl": 300,
+            "ttl": 5,
             "kind": "dns#resourceRecordSet"
           }
         ]
@@ -132,7 +132,7 @@ class Gcloud:
 
   def delete_disk(self, name):
     try:
-        disk = self.compute.disks().delete(
+      self.compute.disks().delete(
             project=GCLOUD_PROJECT,
             zone=GCLOUD_ZONE,
             disk=name
@@ -141,7 +141,7 @@ class Gcloud:
       if e.resp.status == 404:
         logging.debug('Disk does not exist. Unable to delete')
       elif e.resp.status == 400:
-        logging.debug('Disk still in use. Unable to delete')
+        logging.debug('Disk in use.')
       else:
         raise
 

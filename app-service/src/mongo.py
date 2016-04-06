@@ -72,7 +72,7 @@ class MongoReplica(object):
     ip_address = gcloud.reserve_ip(self.ip_name(replica))
 
     args = dict(
-      hostname='mongo-%s-%s-%d' % (self.creator, self.app, replica),
+      hostname=self.host_name(replica),
       size=replica,
       ip=ip_address,
       **self.args)
