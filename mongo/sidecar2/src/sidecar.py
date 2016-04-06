@@ -31,7 +31,8 @@ google_credentials = GoogleCredentials.get_application_default()
 logging.basicConfig(level=logging.DEBUG, format='%(relativeCreated)6d %(threadName)s:   %(message)s')
 #logging.basicConfig(level=logging.DEBUG)
 
-IP_RE = R'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:(\d+))?$'
+IP_RE = r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:(\d+))?$'
+HOST_RE = r'([-.a-z0-9]+)(:(\d+))?$'
 
 def ip_with_port(ip, if_not_port=27017):
     match = re.match(IP_RE, ip)
@@ -41,6 +42,20 @@ def ip_with_port(ip, if_not_port=27017):
     if not port:
         port = if_not_port
     return '%s:%s' % (host, port)
+
+def host_with_port(ip, if_not_port=27017):
+    match = re.match(HOST_RE, ip)
+    if not match:
+        raise Exception()
+    host, port = match.group(1), match.group(3)
+    if not port:
+        port = if_not_port
+    return '%s:%s' % (host, port)
+
+def host_only(uri):
+    print(uri)
+    match = re.match(HOST_RE, uri)
+    return match.group(1)
     
 def get_app_service():
     return thriftpy.rpc.make_client(
@@ -59,8 +74,9 @@ class ReplicaManager(threading.Thread):
             local_mongo_server_conn,
             external_ip
             ):
-        threading.Thread.__init__(self, name='ReplicaManager %s' % local_mongo_server_conn)
+        threading.Thread.__init__(self, name='ReplicaManager %s:%s' % (hostname, local_mongo_server_conn))
         
+        self.pods = []
         self.local_pod_ip = socket.gethostbyname(socket.getfqdn())
         #logging.info('Local pod IP is %s', self.local_pod_ip)
         self.k8s = k8s
@@ -69,6 +85,7 @@ class ReplicaManager(threading.Thread):
         self.creator_name = creator_name
         self.hostname = hostname
         self.external_ip = external_ip
+        self.is_mongo_authed = False
 
     def get_mongo_pods(self):
         pods = Pod.objects(self.k8s).filter(
@@ -79,14 +96,15 @@ class ReplicaManager(threading.Thread):
             }
         )
 
-        return pods
-        ready_pods = list(filter(operator.attrgetter("ready"), pods))
+        ready_pods = []
+        for p in pods:
+            if 'podIP' not in p.obj['status']:
+                continue
+            ready_pods.append(p)
 
-        if not ready_pods:
-            raise Exception('Empty pod list. That is weird')
         return ready_pods
 
-    def wait_until_started(self, mongo=None):
+    def wait_until_replica_init(self, mongo=None):
         ''' if we are in a replica set and the RS is fully initialised return True '''
         while True:
             status = self.local_mongo.admin.command('replSetGetStatus')
@@ -132,10 +150,11 @@ class ReplicaManager(threading.Thread):
         dns_record = recordsResource.list(
             project=GCLOUD_PROJECT,
             managedZone=GCLOUD_DNS_ZONE,
-            name='%s.' % self.hostname,
+            name='%s.' % host_only(self.hostname),
             type='A'
         ).execute()['rrsets']
 
+        logging.debug('Got dns record %s', dns_record)
         assert len(dns_record) == 1
         dns_record = dns_record[0]
 
@@ -144,7 +163,7 @@ class ReplicaManager(threading.Thread):
             return True
 
         
-        changes = self.dns.changes()
+        changes = dns.changes()
         changes.create(
             project=GCLOUD_PROJECT,
             managedZone='waverbase',
@@ -154,21 +173,23 @@ class ReplicaManager(threading.Thread):
                 ],
                 "additions": [{
                     "rrdatas": [
-                        self.external_ip,
-                        self.local_pod_ip
+                        host_only(self.external_ip),
+                        host_only(self.local_pod_ip)
                     ],
                     "type": "A",
-                    "name": self.hostname+'.',
-                    "ttl": 10
+                    "name": host_only(self.hostname)+'.',
+                    "ttl": 5
                 }]
-            })
+            }).execute()
+        # wait for ttl
+        time.sleep(5)
 
     def update_replica_members(self):
         self.pods = self.get_mongo_pods()
         config = self.local_mongo.admin.command('replSetGetConfig')['config']
 
-        mongo_ips = set(m['host'] for m in config['members'])
-        pod_ips = set(p.obj['metadata']['labels']['hostname'] for p in self.pods)
+        mongo_ips = set(host_with_port(m['host']) for m in config['members'])
+        pod_ips = set(host_with_port(p.obj['metadata']['labels']['hostname']) for p in self.pods)
 
         to_add = pod_ips - mongo_ips
         to_remove = mongo_ips - pod_ips
@@ -227,18 +248,43 @@ class ReplicaManager(threading.Thread):
             from pprint import pprint
             print(pprint(self.local_mongo.admin.command('replSetGetStatus'), indent=2))
 
-        self.wait_until_started()
+        self.wait_until_replica_init()
         logging.debug('We are in a replica. Yaay')
 
     @property
     def is_master(self):
         return self.local_mongo.admin.command('isMaster')['ismaster']
 
-    def init_mongo_auth(self):
+    def mongo_auth(self, mongo_password):
+        if self.is_mongo_authed:
+            return
+        logging.debug('Have password. Attempting to auth')
+        for i in range(10):
+            try:
+                self.local_mongo.admin.authenticate('waverbase', mongo_password)
+                self.is_mongo_authed = True
+                break
+            except pymongo.errors.OperationFailure as e:
+                print(e.code)
+                logging.debug('Auth failed. Assume that we have not properly synced yet')
+                time.sleep(2)
+        else:
+            raise e
+        logging.debug('Authenticated to mongo')
+
+    def init_mongo_auth(self, in_replica):
         logging.debug('Authenticating...')
         mongo_password = self.app_service.get_mongo_password(
             self.app_name,
             self.creator_name)
+
+        if self.is_mongo_authed:
+            return
+
+        if not in_replica:
+            if mongo_password:
+                self.mongo_auth(mongo_password)
+            return
 
         # ask mongo if we are mongo master. Whether we are primary doesn't help all that much
         is_master = self.is_master
@@ -260,32 +306,28 @@ class ReplicaManager(threading.Thread):
                     {'role':'userAdminAnyDatabase','db':'admin'}]
             )
             logging.debug('Created user waverbase on local mongo')
+            self.mongo_auth(mongo_password)
             self.app_service.set_mongo_password(
                 self.app_name,
                 self.creator_name,
                 mongo_password)
             logging.debug('Told app-service about our password')
+            return
 
+        assert mongo_password
+        self.mongo_auth(mongo_password)
 
-        logging.debug('Have password. Attempting to auth')
-        for i in range(5):
-            try:
-                self.local_mongo.admin.authenticate('waverbase', mongo_password)
-                break
-            except pymongo.errors.OperationFailure as e:
-                print(e.code)
-                logging.debug('Auth failed. Assume that we have not properly synced yet')
-                time.sleep(2)
-        else:
-            raise e
                 
-        logging.debug('Authenticated to mongo')
 
     def run(self):
+        while len(self.pods) < 3:
+            self.pods = self.get_mongo_pods()
+            time.sleep(5)
+
         self.update_dns_record()
-        self.local_mongo = pymongo.MongoClient(self.local_mongo_server_conn)
         self.app_service = get_app_service()
-        self.pods = self.get_mongo_pods()
+        self.local_mongo = pymongo.MongoClient(self.local_mongo_server_conn)
+        self.init_mongo_auth(in_replica=False)
 
         if self.is_primary():
             logging.info('PRIMARY')
@@ -294,7 +336,7 @@ class ReplicaManager(threading.Thread):
 
         self.ensure_in_replica_set()
 
-        self.init_mongo_auth()
+        self.init_mongo_auth(in_replica=True)
 
         while True:
             if self.is_master:
@@ -317,7 +359,7 @@ def test():
             Pod(None, {
                 'metadata': {
                     'labels': {
-                        'hostname': '127.0.0.1:%d' % p
+                        'hostname': 'fb-1.db.waverbase.com:%d' % p
                     }
                 },
                 'status': {
@@ -333,7 +375,7 @@ def test():
         replica_manager = ReplicaManager(
             app_name='testapp',
             creator_name='testcreator',
-            hostname='127.0.0.1:%d' % p,
+            hostname='fb-1.db.waverbase.com:%d' % p,
             k8s=k8s,
             local_mongo_server_conn = 'mongodb://127.0.0.1:%d' % p,
             external_ip='127.0.0.1:%d' % p
