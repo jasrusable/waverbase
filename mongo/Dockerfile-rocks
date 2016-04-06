@@ -1,0 +1,22 @@
+FROM debian:jessie
+
+# add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
+RUN groupadd -r mongodb && useradd -r -g mongodb mongodb
+
+RUN apt-get update
+RUN apt-get install -y git wget scons build-essential
+
+RUN git clone https://github.com/mongodb-partners/mongo.git 
+
+RUN wget https://github.com/facebook/rocksdb/archive/v4.3.1.tar.gz
+RUN tar xf v4.3.1.tar.gz
+RUN apt-get install -y libgflags-dev zlib1g-dev libbz2-dev libsnappy-dev
+WORKDIR /rocksdb-4.3.1
+RUN make static_lib
+RUN make install
+
+WORKDIR /mongo
+RUN git checkout v3.0.10-mongorocks
+RUN scons
+#
+## THIS IS DEV ONLY. PRODUCTION MONGO SHOULD NOT HAVE DEV DEPENDENCIES
