@@ -2,7 +2,7 @@
   "script": "webpack",
   "args": ["--colors", "--watch"]
 }, {
-  "script": "./build/backend.js",
+  "script": "./ops/run-backend.sh",
   "watch": "./build/backend.js"
 }, {
   "script": "thrift",

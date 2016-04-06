@@ -1,5 +1,5 @@
 import thriftClientFactory from './thrift-client-factory.jsx';
-import {Client, } from 'thrift-loader?service=Waverbase!../../../public-api-service/public-api.thrift';
+import { Client, } from 'thrift-loader?service=Waverbase!../../../public-api-service/public-api.thrift';
 
 const shittyClient = thriftClientFactory(Client, 'http://localhost:9099/waverbase');
 

@@ -6,11 +6,28 @@ import classNames from 'classnames';
 
 const Input = React.createClass({
   propTypes: {
+    name: React.PropTypes.string,
     type: React.PropTypes.oneOf([
       'password',
       'text',
     ]),
   },
+
+
+  contextTypes: {
+    getInputViolations: React.PropTypes.func,
+    registerInput: React.PropTypes.func,
+    validateInputs: React.PropTypes.func,
+  },
+
+
+  getInitialState: function(): Object {
+    return {
+      value: '',
+      isPristine: true,
+    }
+  },
+
 
   getDefaultProps: function(): Object {
     return {
@@ -19,46 +36,52 @@ const Input = React.createClass({
   },
 
 
+  componentWillMount: function(): void {
+    this.context.registerInput(this.props.name, this);
+  },
+
+
+  getIsPristine: function(): bool {
+    return this.state.isPristine;
+  },
+
+
+  getValue: function(): string {
+    return this.state.value;
+  },
+
+
   _handleChange: function(event: any): void {
-    const value = event.currentTarget.value;
-    this.setValue(value);
-    // this.props.onChange(this.props.name, value);
-  },
-
-
-  getErrorMessage: function() {
-    return 'there is a problem';
-  },
-
-
-  getValue: function() {
-    return 'hello';
+    this.setState({
+      value: event.currentTarget.value,
+      isPristine: false,
+    }, () => this.context.validateInputs());
   },
 
 
   render: function(): React.Element {
-    const errorMessage = this.getErrorMessage();
-    const isErrorMessage = errorMessage !== null;
+    const violations = this.context.getInputViolations(this.props.name);
+    const isRequiredAffordance = this.props.showIsRequired ? '*' : null;
     const errorMessageClassNames = classNames(
       'ui',
       {
-        error: isErrorMessage,
-        hidden: !isErrorMessage,
+        hidden: violations === null,
+        error: violations !== null,
       },
       'message'
     );
     return (
       <div>
         <div className="field">
-          <label>{this.props.label}</label>
+          <label>{this.props.label} {isRequiredAffordance}</label>
           <input
             type={this.props.type}
             onChange={this._handleChange}
-            value={this.getValue()}
+            value={this.state.value}
           />
         </div>
         <div className={errorMessageClassNames}>
-          <p>{errorMessage}</p>
+          <p>{violations}</p>
         </div>
       </div>
     )

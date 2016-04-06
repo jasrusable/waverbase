@@ -22,7 +22,7 @@ import ClassBrowser from './dashboard/class-browser.jsx';
 import CreateNewClass from './dashboard/create-class.jsx';
 import CreateNewApp from './dashboard/create-app.jsx';
 import Waverbase from './common/waverbase.jsx';
-import {isSignedIn, } from './util/auth.jsx';
+import { isSignedIn, } from './util/auth.jsx';
 
 
 function requireSignedIn(nextState: Object, replace: Function) {
