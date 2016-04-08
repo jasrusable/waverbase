@@ -1,8 +1,9 @@
 FROM debian:jessie
 
 RUN apt-get -y update && apt-get -y install \
+  curl \
   init-system-helpers \
-  golang-go \
+  git \
   libsasl2-2 \
   wget
 
@@ -14,8 +15,17 @@ RUN wget "https://www.percona.com/downloads/percona-server-mongodb/percona-serve
 
 RUN dpkg -i percona-server-mongodb-*
 
+RUN curl https://storage.googleapis.com/golang/go1.5.3.linux-amd64.tar.gz | tar xzf - -C /usr/local
+RUN mkdir /go
+RUN chmod 0777 /go
+
+ENV PATH="/usr/local/go/bin:${PATH}:"
+ENV GOPATH=/go
+
 RUN go get github.com/facebookgo/rocks-strata/strata/cmd/mongo/lreplica_s3storage_driver/strata
 RUN go install github.com/facebookgo/rocks-strata/strata/cmd/mongo/lreplica_s3storage_driver/strata
+
+ENV PATH="/go/bin:${PATH}:"
 
 # USER mongod
 
