@@ -27,7 +27,7 @@ RUN go install github.com/facebookgo/rocks-strata/strata/cmd/mongo/lreplica_s3st
 
 ENV PATH="/go/bin:${PATH}:"
 
-# USER mongod
+USER mongod
 
-# RUN mkdir /tmp/db
+RUN mkdir /tmp/db
 # CMD mongod --dbpath /tmp/db --storageEngine rocksdb
