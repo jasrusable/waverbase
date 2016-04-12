@@ -52,6 +52,19 @@ def reserve_ip(name):
     return ip_address
 
 @app.task
+def delete_ip(name):
+  try:
+      result = compute.addresses().delete(
+      project=GCLOUD_PROJECT,
+      region=GCLOUD_REGION,
+      address=name
+      ).execute()
+      return True
+  except HttpError, err:
+    logging.error('Unable to delete IP %s' % err)
+    return False
+
+@app.task
 def reserve_disk(name, size):
   disk = compute.disks().insert(
       project=GCLOUD_PROJECT,

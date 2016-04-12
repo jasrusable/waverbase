@@ -41,10 +41,10 @@ def add_mongo_replicas(creator, name, db_size, replicas=3):
             args[i])
 
 @app.task
-def delete_mongo_replica(creator, name):
+def delete_mongo_replica(name, creator):
     # TODO: count the number of replicas
     replicas = 3
-    args = [
+    a = [
         {
             'hostname': host_name({'app':name}, replica),
             'creator': creator,
@@ -52,16 +52,14 @@ def delete_mongo_replica(creator, name):
         }
         for replica in range(1, replicas+1)
     ]
-    group(
-        gcloud.delete_kube_by_name(
-                'rc/'+replication_controller_name(a, replica)).
-        gcloud.delete_kube_by_name(
-                'svc/'+service_name(a, replica)).
-        gcloud.delete_disk(disk_name(a, replica)).
-        gcloud.delete_ip(ip_name(a, replica)).
-        gcloud.delete_dns_record(host_name(a, replica))
-            for replica in range(1, replicas+1)
-    )().collect()
+    ss = group(*sum(([k8s.delete_kube_by_name.s(
+                'rc/'+replication_controller_name(a[r], r)),
+        k8s.delete_kube_by_name.s(
+                'svc/'+service_name(a[r], r)),
+        gcloud.delete_disk.s(disk_name(a[r], r)),
+        gcloud.delete_ip.s(ip_name(a[r], r)),
+        gcloud.delete_dns_record.s(host_name(a[r], r))]
+            for r in range(replicas)), []))()
 
 def ip_name(args, replica):
   return 'ip-mongo-%(creator)s-%(app)s-%(size)d' % dict(size=replica, **args)

@@ -44,14 +44,7 @@ class AppHandler(object):
     task.create_app.delay(app, creator)
 
   def delete_app(self, app, creator):
-    db = mongo_connection()
-    mongo = MongoReplica(creator, app)
-    mongo.delete()
-    deleted = db.apps.delete_one({
-      'creator': creator,
-      'name': app
-    })
-    print(deleted.deleted_count)
+    task.mongo.delete_mongo_replica.delay(app, creator)
     return True
 
   def get_app(self, app, creator):
