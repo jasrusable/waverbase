@@ -1,4 +1,5 @@
 import sys
+import os
 sys.path.append('../gen-py')
 
 import logging
@@ -8,16 +9,19 @@ from thrift.transport import TSocket
 from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol
 from thrift.server import TServer
+import pymongo
 
 from app import AppService
-
-from gcloud import gcloud
-from mongo import mongo_connection, MongoReplica
-
+import task
 
 UNITIALISED = 'unitialised'
 INITIALISING = 'initialising'
 INITIALISED = 'initialised'
+
+def mongo_connection():
+  return pymongo.MongoClient('mongodb://%s:%s' % (
+      os.environ['MONGO_WAVER_SERVICE_HOST'],
+      os.environ['MONGO_WAVER_SERVICE_PORT'])).waverbase
 
 
 class AppHandler(object):
@@ -27,23 +31,17 @@ class AppHandler(object):
         'name': app,
         'creator': creator,
     }
-    mongo = MongoReplica(creator, app)
     if not db.apps.find_one(app_args):
         app_args.update({
         'rps': 30,
-        'parse_server': '',
         'parse_server_state': UNITIALISED,
-        'mongo_server': '',
         'mongo_server_state': UNITIALISED,
-        'mongo_db': '',
-        'mongo_username': '',
-        'mongo_password': ''
         })
-        db.apps.insert_one(app_args)
+        db.apps.insert(app_args)
     else:
         print 'App already exists in db'
 
-    mongo.create()
+    task.create_app.delay(app, creator)
 
   def delete_app(self, app, creator):
     db = mongo_connection()
@@ -124,7 +122,7 @@ class AppHandler(object):
 
   def ping(self):
     logging.info('pong')
-    return 'pong'
+    return 'PONG'
 
 
 if __name__ == '__main__':
@@ -136,10 +134,8 @@ if __name__ == '__main__':
   processor = AppService.Processor(handler)
 
   port=9090
-  transport = TSocket.TServerSocket(port=port)
-  tfactory = TTransport.TBufferedTransportFactory()
-  pfactory = TBinaryProtocol.TBinaryProtocolFactory()
 
   logging.info('Listening on %d' % port)
-  server = TServer.TThreadedServer(processor, transport, tfactory, pfactory)
+  transport = TSocket.TServerSocket(port=port)
+  server = TServer.TThreadedServer(processor, transport)
   server.serve()

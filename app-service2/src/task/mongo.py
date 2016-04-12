@@ -1,4 +1,4 @@
-from tasks import app
+from task import app
 from celery import group, chain
 from celery.result import ResultBase
 
@@ -48,23 +48,23 @@ def delete_mongo_replica(creator, name):
     replicas = 3
     args = [
         {
-            hostname=host_name({'app':name}, replica),
-            size=replica,
-            creator=creator,
-            app=name
+            'hostname': host_name({'app':name}, replica),
+            'size': replica,
+            'creator': creator,
+            'app': name
         }
         for replica in range(1, replicas+1)
     ]
-    group(*[
+    group(
         gcloud.delete_kube_by_name(
-                'rc/'+replication_controller_name(a, replica))
+                'rc/'+replication_controller_name(a, replica)).
         gcloud.delete_kube_by_name(
-                'svc/'+service_name(a, replica))
-        gcloud.delete_disk(disk_name(a, replica))
-        gcloud.delete_ip(ip_name(a, replica))
+                'svc/'+service_name(a, replica)).
+        gcloud.delete_disk(disk_name(a, replica)).
+        gcloud.delete_ip(ip_name(a, replica)).
         gcloud.delete_dns_record(host_name(a, replica))
             for replica in range(1, replicas+1)
-    ])().collect()
+    )().collect()
 
 def ip_name(args, replica):
   return 'ip-mongo-%(creator)s-%(app)s-%(size)d' % dict(size=replica, **args)

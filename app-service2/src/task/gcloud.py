@@ -4,7 +4,7 @@ from googleapiclient.errors import HttpError
 
 import logging
 
-from tasks import app
+from task import app
 
 GCLOUD_ZONE = 'europe-west1-b'
 GCLOUD_REGION = 'europe-west1'

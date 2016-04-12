@@ -1,7 +1,7 @@
 from plumbum import local, FG, ProcessExecutionError
 import logging
 
-from tasks import app
+from task import app
 
 kubectl = local["kubectl"]
 
