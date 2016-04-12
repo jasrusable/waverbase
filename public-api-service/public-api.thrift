@@ -50,7 +50,7 @@ exception EmailAddressNotFoundError {
   1: string errorMessage,
 }
 
-service Waverbase {
+service PublicAPI {
   Auth signUp(1: string emailAddress, 2: string password)
     throws (
       1: DuplicateUsernameError e,
