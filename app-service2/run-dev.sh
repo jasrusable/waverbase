@@ -1,9 +1,11 @@
 eval $(docker-machine env)
+source ve/bin/activate
+
 DOCKER_HOST_IP=$(echo $DOCKER_HOST| grep -E -o '\d{1,3}(\.\d{1,3}){3}')
 
 REDIS_ID= $(docker run -d -p 6379:6379 redis:alpine)
 export REDIS_SERVICE_HOST=$DOCKER_HOST_IP
-export REDIS_SERVICE_HOST=6379
+export REDIS_SERVICE_PORT=6379
 
 RABBIT_ID=$(docker run -d -p 4369:4369 -p 5671:5671 -p 5672:5672 rabbitmq)
 export RABBITMQ_SERVICE_HOST=$DOCKER_HOST_IP
