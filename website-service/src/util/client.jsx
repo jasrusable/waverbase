@@ -1,7 +1,8 @@
 import thriftClientFactory from './thrift-client-factory.jsx';
-import { Client, } from 'thrift-loader?service=Waverbase!../../../public-api-service/public-api.thrift';
+import { PublicAPIClient , } from '!exports-loader?PublicAPIClient=PublicAPIClient!thrift-loader?generator=jquery!../../../public-api-service/public-api.thrift';
 
-const shittyClient = thriftClientFactory(Client, 'http://localhost:9099/waverbase');
+
+const shittyClient = thriftClientFactory(PublicAPIClient, 'http://localhost:9099/waverbase');
 
 function promisifyClientMethod(original: Function, client: Object): Function {
   return function(...args: array): Promise{

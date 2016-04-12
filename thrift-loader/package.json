@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "loader-utils": "^0.2.12"
+    "glob": "^7.0.3",
+    "loader-utils": "^0.2.13"
   },
   "devDependencies": {},
   "scripts": {
