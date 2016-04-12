@@ -11,21 +11,16 @@ def add_mongo_replicas(creator, name, db_size, replicas=3):
     for replica in range(1, replicas+1):
         args.append(dict(
             hostname=host_name({'app':name}, replica),
-            size=replica,
             creator=creator,
             app=name
         ))
-        k8s.create_kube_from_template.delay(
-            'mongo-service-template.yaml',
-            args[-1])
 
     ip_results = []
     wait = []
 
     for replica in range(1, replicas+1):
         a = args[replica-1]
-        wait.append(gcloud.add_dns_record.delay(host_name(a, replica)))
-        wait.append(gcloud.reserve_disk.delay(disk_name(a, replica)))
+        wait.append(gcloud.reserve_disk.delay(disk_name(a, replica), db_size))
         ip_results.append(gcloud.reserve_ip.delay(ip_name(a, replica)))
 
     # wait until all previous tasks have completed
@@ -36,8 +31,11 @@ def add_mongo_replicas(creator, name, db_size, replicas=3):
 
     # create the rc from all the resources we now have
     for i, ip_r in enumerate(ip_results):
-        args[i]['ip'] = ip_r.get()
-
+        args[i]['ip'] = ip = ip_r.get()
+        gcloud.add_dns_record.delay(host_name(a, replica), ip)
+        k8s.create_kube_from_template.delay(
+            'mongo-service-template.yaml',
+            args[-1])
         k8s.create_kube_from_template.delay(
             'mongo-controller-template.yaml',
             args[i])
@@ -49,7 +47,6 @@ def delete_mongo_replica(creator, name):
     args = [
         {
             'hostname': host_name({'app':name}, replica),
-            'size': replica,
             'creator': creator,
             'app': name
         }

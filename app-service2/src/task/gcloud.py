@@ -3,6 +3,7 @@ from googleapiclient import discovery
 from googleapiclient.errors import HttpError
 
 import logging
+import time
 
 from task import app
 
@@ -16,10 +17,10 @@ compute = discovery.build('compute', 'v1', credentials=credentials)
 dns = discovery.build('dns', 'v1', credentials=credentials)
 
 @app.task
-def reserve_ip():
+def reserve_ip(name):
     logging.info('Reserving IP address')
     try:
-        result = self.compute.addresses().insert(
+        result = compute.addresses().insert(
             project=GCLOUD_PROJECT,
             region=GCLOUD_REGION,
             body={
@@ -35,13 +36,14 @@ def reserve_ip():
     ip_address = None
 
     while ip_address is None:
-        result = self.compute.addresses().get(
+        result = compute.addresses().get(
             project=GCLOUD_PROJECT,
             region=GCLOUD_REGION,
             address=name
         ).execute()
 
         ip_address = result.get('address')
+        # BAD
         time.sleep(1)
         if not ip_address:
           logging.debug('Waiting for IP...')
@@ -50,8 +52,8 @@ def reserve_ip():
     return ip_address
 
 @app.task
-def reserve_disk(self, name, size):
-  disk = self.compute.disks().insert(
+def reserve_disk(name, size):
+  disk = compute.disks().insert(
       project=GCLOUD_PROJECT,
       zone=GCLOUD_ZONE,
       body={
@@ -62,9 +64,9 @@ def reserve_disk(self, name, size):
   return disk
 
 @app.task
-def delete_disk(self, name):
+def delete_disk(name):
   try:
-    return self.compute.disks().delete(
+    return compute.disks().delete(
           project=GCLOUD_PROJECT,
           zone=GCLOUD_ZONE,
           disk=name
@@ -77,3 +79,45 @@ def delete_disk(self, name):
     else:
       raise
 
+@app.task
+def add_dns_record(host, ip):
+  logging.debug('Creating DNS A record for %s' % host)
+  changes = dns.changes()
+  changes.create(
+    project=GCLOUD_PROJECT,
+    managedZone='waverbase',
+    body={
+      "kind": "dns#change",
+      "additions": [
+        {
+          "rrdatas": [ip],
+          "type":"A",
+          "name": host+'.',
+          "ttl": 5,
+          "kind": "dns#resourceRecordSet"
+        }
+      ]
+    }).execute()
+
+@app.task
+def delete_dns_record(host):
+  logging.debug('Deleting DNS record')
+  recordsResource = dns.resourceRecordSets()
+  records = recordsResource.list(
+    project=GCLOUD_PROJECT,
+    managedZone=GCLOUD_DNS_ZONE,
+    name='%s.' % host,
+    type='A'
+    ).execute()['rrsets']
+  print(records)
+  if records:
+      changesResource = dns.changes()
+      changesResource.create(
+      project=GCLOUD_PROJECT,
+      managedZone=GCLOUD_DNS_ZONE,
+      body={
+          "kind": "dns#change",
+          "deletions": records
+      }).execute()
+  else:
+    logging.debug('No records to remove')
