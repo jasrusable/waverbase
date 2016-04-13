@@ -79,8 +79,8 @@ def reserve_disk(name, size):
   except HttpError, err:
     logging.error('UNable to reserve disk %s' % (err))
 
-@app.task(retry=True, interval_start=5)
-def delete_disk(name):
+@app.task(bind=True)
+def delete_disk(self, name, max_retries=5):
   print('Deleting disk %s', name)
   try:
     return compute.disks().delete(
@@ -92,29 +92,35 @@ def delete_disk(name):
     if e.resp.status == 404:
       logging.error('Disk does not exist. Unable to delete')
     elif e.resp.status == 400:
-      raise Exception('Disk still in use')
+      logging.error('Disk still in use')
+      self.retry(exc=e, args=[name], countdown=30)
     else:
+      logging.error('Could not delete disk %s', e)
       raise
 
 @app.task
 def add_dns_record(host, ip):
   logging.debug('Creating DNS A record for %s' % host)
   changes = dns.changes()
-  changes.create(
-    project=GCLOUD_PROJECT,
-    managedZone='waverbase',
-    body={
-      "kind": "dns#change",
-      "additions": [
-        {
-          "rrdatas": [ip],
-          "type":"A",
-          "name": host+'.',
-          "ttl": 5,
-          "kind": "dns#resourceRecordSet"
-        }
-      ]
-    }).execute()
+  try:
+    changes.create(
+      project=GCLOUD_PROJECT,
+      managedZone='waverbase',
+      body={
+        "kind": "dns#change",
+        "additions": [
+          {
+            "rrdatas": [ip],
+            "type":"A",
+            "name": host+'.',
+            "ttl": 5,
+            "kind": "dns#resourceRecordSet"
+          }
+        ]
+      }).execute()
+  except HttpError, err:
+    logging.error('Could not add dns record %s', err)
+    raise err
 
 @app.task
 def delete_dns_record(host):
