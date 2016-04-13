@@ -66,18 +66,22 @@ def delete_ip(name):
 
 @app.task
 def reserve_disk(name, size):
-  disk = compute.disks().insert(
-      project=GCLOUD_PROJECT,
-      zone=GCLOUD_ZONE,
-      body={
-        "sizeGb": str(size),
-        "name": name,
-      }
-  ).execute()
-  return disk
+  try:
+    disk = compute.disks().insert(
+        project=GCLOUD_PROJECT,
+        zone=GCLOUD_ZONE,
+        body={
+          "sizeGb": str(size),
+          "name": name,
+        }
+    ).execute()
+    return disk
+  except HttpError, err:
+    logging.error('UNable to reserve disk %s' % (err))
 
-@app.task
+@app.task(retry=True, interval_start=5)
 def delete_disk(name):
+  print('Deleting disk %s', name)
   try:
     return compute.disks().delete(
           project=GCLOUD_PROJECT,
@@ -86,9 +90,9 @@ def delete_disk(name):
       ).execute()
   except HttpError, e:
     if e.resp.status == 404:
-      logging.debug('Disk does not exist. Unable to delete')
+      logging.error('Disk does not exist. Unable to delete')
     elif e.resp.status == 400:
-      logging.debug('Disk in use.')
+      raise Exception('Disk still in use')
     else:
       raise
 

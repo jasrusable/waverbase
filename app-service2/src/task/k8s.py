@@ -7,7 +7,10 @@ from task import app
 kubectl = local["kubectl"]
 
 @app.task
-def create_kube_from_template(file_name, args):
+def create_kube_from_template(file_name, *aargs):
+  args = {}
+  for a in aargs:
+    args.update(a)
   template = open(os.path.join('..', file_name)).read() % args
   logging.info((kubectl["create", "-f", "-", "--logtostderr"] << template)())
 

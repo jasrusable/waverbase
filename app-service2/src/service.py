@@ -41,7 +41,7 @@ class AppHandler(object):
     else:
         print 'App already exists in db'
 
-    task.create_app.delay(app, creator)
+    task.create_app.delay(app, creator, 50)
 
   def delete_app(self, app, creator):
     task.mongo.delete_mongo_replica.delay(app, creator)

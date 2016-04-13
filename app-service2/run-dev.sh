@@ -3,7 +3,7 @@ source ve/bin/activate
 
 DOCKER_HOST_IP=$(echo $DOCKER_HOST| grep -E -o '\d{1,3}(\.\d{1,3}){3}')
 
-REDIS_ID= $(docker run -d -p 6379:6379 redis:alpine)
+REDIS_ID=$(docker run -d -p 6379:6379 redis:alpine)
 export REDIS_SERVICE_HOST=$DOCKER_HOST_IP
 export REDIS_SERVICE_PORT=6379
 
@@ -19,12 +19,12 @@ mkdir -p /tmp/mongo-service
 mongod  --dbpath /tmp/mongo-service 2>/dev/null > /dev/null &
 MONGO_PID=$!
 
-celery worker -A task &
+celery worker -A task -l DEBUG --concurrency=20 &
 CELERY_PID=$!
 
 python service.py
-docker stop $RABBIT_ID
-docker stop $REDIS_IP
+#docker stop $RABBIT_ID
+#docker stop $REDIS_ID
 
-kill $MONGO_PID
+#kill $MONGO_PID
 kill $CELERY_PID
