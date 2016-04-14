@@ -1,0 +1,26 @@
+version: '2'
+services:
+  mongorocks:
+    container_name: mongorocks
+    build:
+      context: ./mongorocks
+    volumes:
+     - ./db:/db
+     - ./backups:/backups
+    image: mongorocks
+    entrypoint: mongod --dbpath /db --storageEngine=rocksdb
+  pyrocksdb:
+    container_name: pyrocksdb
+    build:
+      context: ./pyrocksdb
+    volumes:
+      - ./db:/db
+      - ./pyrocksdb_backups:/pyrocksdb_backups
+    image: pyrocksdb
+  strata:
+    container_name: strata
+    build:
+      context: ./strata
+    volumes:
+      - ./db:/db
+    image: strata
