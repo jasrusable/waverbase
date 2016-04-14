@@ -8,6 +8,11 @@ RUN apt-get -y update && apt-get -y install \
   python3 \
   python3-pip \
   git \
+  build-essential \
+  libsnappy-dev \
+  zlib1g-dev \
+  libbz2-dev \
+  libgflags-dev \
   python3-dev
 
 RUN git clone https://github.com/facebook/rocksdb.git
