@@ -38,11 +38,17 @@ spec:
             - "/mongod.conf"
           ports:
             - containerPort: 27017
+          limits:
+            cpu: 1000m
+            memory: 2Gi
           volumeMounts:
             - name: mongo-persistent-storage
               mountPath: /data/db
         - name: mongo-sidecar
           image: eu.gcr.io/api-project-1075799951054/sidecar:latest
+          limits:
+            cpu: 200m
+            memory: 100Mi
           env:
             - name: EXTERNAL_IP
               value: "%(ip)s"
