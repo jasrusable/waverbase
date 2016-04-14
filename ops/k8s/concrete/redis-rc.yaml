@@ -1,0 +1,33 @@
+kind: ReplicationController
+apiVersion: v1
+metadata:
+  name: redis
+spec:
+  replicas: 1
+  selector:
+    name: redis
+  template:
+    spec:
+      containers:
+        - name: redis
+          image: eu.gcr.io/api-project-1075799951054/redis
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              cpu: 200m
+              memory: 500Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - name: redis-persistent-storage
+              mountPath: /data
+      volumes:
+        - name: redis-persistent-storage
+          gcePersistentDisk:
+            pdName: redis-waver
+            fsType: ext4
+    metadata:
+      labels:
+        name: redis
