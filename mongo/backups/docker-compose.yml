@@ -8,6 +8,7 @@ services:
      - ./db:/db
      - ./backups:/backups
     image: mongorocks
+    network_mode: "host"
     entrypoint: mongod --dbpath /db --storageEngine=rocksdb
   pyrocksdb:
     container_name: pyrocksdb
@@ -24,3 +25,10 @@ services:
     volumes:
       - ./db:/db
     image: strata
+  pymongo:
+    container_name: pymongo
+    build:
+      context: ./pymongo
+    volumes:
+      - ./db:/db
+    image: pymongo
