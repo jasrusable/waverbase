@@ -28,7 +28,5 @@ describe('change-password', () => {
     .catch((error: any) => {
       winston.error(error)
     });
-  }),
-  it('Should do some other awesome stuff.', () => {
   })
 });

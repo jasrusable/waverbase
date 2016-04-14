@@ -1,15 +1,14 @@
 import Mailgun from 'mailgun-js';
 import thrift from 'thrift';
 import promisify from 'es6-promisify';
-import EmailSender from '../gen-nodejs/EmailSender.js';
+import EmailSender from '!exports-loader?Processor=EmailSenderProcessor!thrift-loader?generator=js:node!../email-sender.thrift';
 import winston from 'winston';
 import assert from 'assert';
 
-const THRIFT_PORT = 9098;
-const API_KEY = 'key-18acefbb0db248da44accc2018281765';
-const DOMAIN = 'sandboxa96b81d3f5644263a37223d4acc98058.mailgun.org';
+// const API_KEY = 'key-18acefbb0db248da44accc2018281765';
+// const DOMAIN = 'sandboxa96b81d3f5644263a37223d4acc98058.mailgun.org';
 
-const mailgun = Mailgun({apiKey: API_KEY, domain: DOMAIN});
+const mailgun = Mailgun({apiKey: process.env.MAILGUN_API_KEY, domain: process.env.MAILGUN_DOMAIN});
 
 const handler = {
   sendEmail: function(fromAddress, toAddress, subject, body, result) {
@@ -32,5 +31,5 @@ const handler = {
 
 var server = thrift.createServer(EmailSender, handler);
 
-server.listen(THRIFT_PORT);
-winston.info('Thrift server running on port', THRIFT_PORT);
+server.listen(process.env.EMAIL_SENDER_SERVICE_PORT);
+winston.info('Thrift server running on port', process.env.EMAIL_SENDER_SERVICE_PORT);

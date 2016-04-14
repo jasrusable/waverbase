@@ -31,6 +31,10 @@ module.exports = {
     path: path.join(__dirname, 'build'),
     filename: 'backend.js'
   },
+	resolveLoader: {
+	 root: path.join(__dirname, './node_modules'),
+	 modulesDirectories: ['../', ],
+	},
   externals: nodeModules,
   plugins: [
     new webpack.IgnorePlugin(/\.(css|less)$/),

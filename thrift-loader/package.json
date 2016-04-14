@@ -5,7 +5,9 @@
   "main": "index.js",
   "dependencies": {
     "glob": "^7.0.3",
-    "loader-utils": "^0.2.13"
+    "loader-utils": "^0.2.13",
+    "mkdirp": "^0.5.1",
+    "randomstring": "^1.1.4"
   },
   "devDependencies": {},
   "scripts": {
