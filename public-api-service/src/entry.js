@@ -7,8 +7,6 @@ import {
 import { Waverbase, } from '!thrift-loader?generator=node!../public-api.thrift';
 import winston from 'winston';
 
-const THRIFT_PORT = 9099;
-
 const waverbaseHandler = {
   signUp: require('./users/sign-up.js'),
   changePassword: require('./users/change-password.js'),
@@ -34,5 +32,5 @@ var serverOptions = {
 }
 
 var server = createWebServer(serverOptions);
-server.listen(THRIFT_PORT);
-winston.info('Thrift server running on port', THRIFT_PORT);
+server.listen(process.env.PUBLIC_API_SERVICE_PORT);
+winston.info('Thrift server running on port', process.env.PUBLIC_API_SERVICE_PORT);

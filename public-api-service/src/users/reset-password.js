@@ -1,14 +1,14 @@
 import wrap from '../utils/wrap.js';
 import winston from 'winston';
-import getDatabase from '../utils/db.js';
+import databaseFactory from '../utils/database-factory.js';
 import hat from 'hat';
 import promisify from 'es6-promisify'
-import emailSender from '../utils/email-sender.js';
-import { EmailAddressNotFoundError, } from '!exports-loader?EmailAddressNotFoundError=EmailAddressNotFoundError!thrift-loader?generator=node!../../../public-api-service/public-api.thrift';
+import emailSenderFactory from '../utils/email-sender-factory.js';
+import { EmailAddressNotFoundError, } from '!exports-loader?EmailAddressNotFoundError=EmailAddressNotFoundError!thrift-loader?generator=js:node!../../../public-api-service/public-api.thrift';
 
 module.exports = wrap(function* (emailAddress: string): Iterator {
   winston.info(`Resetting password for user with email address ${emailAddress}`);
-  const db = yield getDatabase();
+  const db = yield databaseFactory.getInstance();
   const users = db.collection('users');
   const passwordResetTokens = db.collection('passwordResetTokens');
 
@@ -25,6 +25,7 @@ module.exports = wrap(function* (emailAddress: string): Iterator {
     userId: user._id,
   });
 
+  const emailSender = emailSenderFactory.getInstance();
   yield promisify(emailSender.sendEmail).bind(emailSender)(
     'avoid3d@gmail.com',
     emailAddress,

@@ -1,7 +1,6 @@
 import wrap from '../utils/wrap.js';
-import {
-  App,
-} from '../gen-nodejs/public-api_types.js';
+import requiresAuth from '../utils/requires-auth.js';
+import { App, } from '!exports-loader?EmailAddressNotFoundError=EmailAddressNotFoundError!thrift-loader?generator=js:node!../../../public-api-service/public-api.thrift';
 
 
 
