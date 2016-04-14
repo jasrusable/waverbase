@@ -1,0 +1,21 @@
+kind: ReplicationController
+apiVersion: v1
+metadata:
+  name: celery
+spec:
+  replicas: 1
+  selector:
+    name: celery
+  template:
+    spec:
+      containers:
+        - name: celery 
+          image: eu.gcr.io/api-project-1075799951054/celery:latest
+          resources:
+            limits:
+              cpu: 500m
+              memory: 500Mi
+
+    metadata:
+      labels:
+        name: celery

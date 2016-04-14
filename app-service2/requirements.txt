@@ -3,3 +3,4 @@ thrift
 google-api-python-client==1.5.0
 pymongo
 redis
+plumbum
